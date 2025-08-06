@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUserData();
     initializeEventListeners();
     updateDashboard();
+    updateUserName();
 });
 
 // Vérification de l'authentification
@@ -146,7 +147,7 @@ function handleFileUpload(file) {
             progressFill.style.width = progress + '%';
             
             if (progress < 30) {
-                progressText.textContent = 'Analyse du document...';
+                progressText.textContent = getTranslation('analyzing_document');
             } else if (progress < 60) {
                 progressText.textContent = 'Extraction du contenu...';
             } else if (progress < 90) {
@@ -848,6 +849,97 @@ function logout() {
     window.location.href = 'index.html';
 }
 
+// Fonctions pour le profil
+function showProfileModal() {
+    const modal = document.getElementById('profileModal');
+    const firstName = document.getElementById('firstName');
+    const lastName = document.getElementById('lastName');
+    const email = document.getElementById('email');
+    const languageSelect = document.getElementById('languageSelect');
+    
+    // Remplir les champs avec les données actuelles
+    const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    firstName.value = userProfile.firstName || '';
+    lastName.value = userProfile.lastName || '';
+    email.value = currentUser ? currentUser.email : '';
+    languageSelect.value = currentLanguage;
+    
+    modal.style.display = 'block';
+}
+
+function closeProfileModal() {
+    document.getElementById('profileModal').style.display = 'none';
+}
+
+function saveProfile() {
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    
+    // Sauvegarder le profil
+    const userProfile = {
+        firstName: firstName,
+        lastName: lastName,
+        language: currentLanguage
+    };
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+    
+    // Mettre à jour l'affichage du nom d'utilisateur
+    updateUserName();
+    
+    showMessage('Profil sauvegardé avec succès', true);
+    closeProfileModal();
+}
+
+function showChangePasswordModal() {
+    document.getElementById('changePasswordModal').style.display = 'block';
+    closeProfileModal();
+}
+
+function closeChangePasswordModal() {
+    document.getElementById('changePasswordModal').style.display = 'none';
+}
+
+function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+    
+    if (newPassword !== confirmNewPassword) {
+        showMessage('Les mots de passe ne correspondent pas', false);
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showMessage('Le mot de passe doit contenir au moins 6 caractères', false);
+        return;
+    }
+    
+    // Simuler le changement de mot de passe
+    showMessage('Mot de passe mis à jour avec succès', true);
+    closeChangePasswordModal();
+    
+    // Réinitialiser le formulaire
+    document.getElementById('changePasswordForm').reset();
+}
+
+function selectAvatar() {
+    // Simuler la sélection d'avatar
+    showMessage('Fonctionnalité avatar en cours de développement', true);
+}
+
+function updateUserName() {
+    const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    const userNameElement = document.getElementById('userName');
+    
+    if (userProfile.firstName) {
+        userNameElement.textContent = `Bonjour ${userProfile.firstName}`;
+    } else if (currentUser) {
+        userNameElement.textContent = currentUser.email;
+    } else {
+        userNameElement.textContent = 'Chargement...';
+    }
+}
+
 // Fonctions pour les matières
 function viewMatiere(matiereId) {
     const matiere = userData.matieres.find(m => m.id === matiereId);
@@ -917,6 +1009,70 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Gestion du formulaire de profil
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveProfile();
+        });
+    }
+    
+    // Gestion du formulaire de changement de mot de passe
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            changePassword();
+        });
+    }
+    
+    // Gestion du sélecteur de langue
+    const languageSelect = document.getElementById('languageSelect');
+    if (languageSelect) {
+        languageSelect.value = currentLanguage;
+        languageSelect.addEventListener('change', function() {
+            changeLanguage(this.value);
+        });
+    }
+    
+    // Gestion du drag & drop pour les fichiers
+    const uploadArea = document.getElementById('uploadArea');
+    if (uploadArea) {
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#2563eb';
+            this.style.backgroundColor = '#eff6ff';
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e5e7eb';
+            this.style.backgroundColor = 'white';
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e5e7eb';
+            this.style.backgroundColor = 'white';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+    }
+    
+    // Gestion de la sélection de fichier
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+    }
 });
 
 // Export des fonctions pour utilisation globale
@@ -936,3 +1092,8 @@ window.sendMessage = sendMessage;
 window.viewMatiere = viewMatiere;
 window.editMatiere = editMatiere;
 window.deleteMatiere = deleteMatiere;
+window.showProfileModal = showProfileModal;
+window.closeProfileModal = closeProfileModal;
+window.showChangePasswordModal = showChangePasswordModal;
+window.closeChangePasswordModal = closeChangePasswordModal;
+window.selectAvatar = selectAvatar;
