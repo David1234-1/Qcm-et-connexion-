@@ -4,7 +4,6 @@ let userData = {
     courses: [],
     qcm: [],
     flashcards: [],
-    resumes: [],
     matieres: [],
     stats: {
         totalCourses: 0,
@@ -14,13 +13,6 @@ let userData = {
     }
 };
 
-// Variables pour le visionneur PDF
-let pdfDoc = null;
-let pageNum = 1;
-let pageRendering = false;
-let pageNumPending = null;
-let scale = 1.5;
-
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard initialisation...');
@@ -29,11 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     updateDashboard();
     updateUserName();
-    
-    // Initialiser les traductions
-    if (typeof updateTranslations === 'function') {
-        updateTranslations();
-    }
 });
 
 // Vérification de l'authentification
@@ -71,7 +58,6 @@ function loadUserData() {
                 courses: [],
                 qcm: [],
                 flashcards: [],
-                resumes: [],
                 matieres: [],
                 stats: {
                     totalCourses: 0,
@@ -214,9 +200,8 @@ function initializeEventListeners() {
     if (languageSelect) {
         languageSelect.value = localStorage.getItem('language') || 'fr';
         languageSelect.addEventListener('change', function() {
-            if (typeof changeLanguage === 'function') {
-                changeLanguage(this.value);
-            }
+            localStorage.setItem('language', this.value);
+            showMessage('Langue changée avec succès', true);
         });
     }
 }
@@ -359,20 +344,17 @@ function completeFileUpload(fileName, fileSize, pdfData) {
     // Générer les QCM et flashcards
     const qcm = generateSampleQCM(course.name, qcmCount, difficulty);
     const flashcards = generateSampleFlashcards(course.name, flashcardsCount);
-    const resume = generateSampleResume(course.name);
     
     // Associer à la matière si sélectionnée
     if (matiereId) {
         qcm.forEach(q => q.matiereId = matiereId);
         flashcards.forEach(f => f.matiereId = matiereId);
-        resume.matiereId = matiereId;
     }
     
     // Ajouter aux données utilisateur
     userData.courses.push(course);
     userData.qcm.push(...qcm);
     userData.flashcards.push(...flashcards);
-    userData.resumes.push(resume);
     
     // Mettre à jour les statistiques
     updateStats();
@@ -482,23 +464,6 @@ function generateSampleFlashcards(courseName, count) {
     return flashcards;
 }
 
-// Génération de résumé d'exemple
-function generateSampleResume(courseName) {
-    return {
-        id: generateId(),
-        courseId: courseName,
-        title: `Résumé - ${courseName}`,
-        content: `Ce cours couvre les fondamentaux de ${courseName}. Il aborde les concepts clés, les mécanismes principaux et les applications pratiques dans le domaine médical.`,
-        keyPoints: [
-            "Concepts fondamentaux",
-            "Mécanismes principaux",
-            "Applications pratiques",
-            "Points d'attention clinique"
-        ],
-        date: new Date().toISOString()
-    };
-}
-
 // Mise à jour des statistiques
 function updateStats() {
     userData.stats.totalCourses = userData.courses.length;
@@ -521,7 +486,6 @@ function updateDashboard() {
     updateMatieresList();
     updateQcmList();
     updateFlashcardsList();
-    updateResumesList();
     updateStatsDisplay();
     updateCourseSelects();
 }
@@ -535,10 +499,10 @@ function updateRecentCourses() {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-file-pdf"></i>
-                <h3 data-translate="no_courses">Aucun cours importé</h3>
-                <p data-translate="start_import">Commencez par importer votre premier cours</p>
+                <h3>Aucun cours importé</h3>
+                <p>Commencez par importer votre premier cours</p>
                 <button onclick="showSection('import')" class="btn-primary">
-                    <span data-translate="import_course">Importer un cours</span>
+                    Importer un cours
                 </button>
             </div>
         `;
@@ -559,11 +523,6 @@ function updateRecentCourses() {
                     <span>${course.flashcardsCount} Flashcards</span>
                 </div>
             </div>
-            <div class="course-actions">
-                <button onclick="openPdfViewer('${course.id}')" class="btn-secondary" title="Voir le PDF">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
         </div>
     `).join('');
 }
@@ -577,10 +536,10 @@ function updateQcmList() {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-question-circle"></i>
-                <h3 data-translate="no_qcm">Aucun QCM disponible</h3>
-                <p data-translate="import_for_qcm">Importez un cours pour générer des QCM</p>
+                <h3>Aucun QCM disponible</h3>
+                <p>Importez un cours pour générer des QCM</p>
                 <button onclick="showSection('import')" class="btn-primary">
-                    <span data-translate="import_course">Importer un cours</span>
+                    Importer un cours
                 </button>
             </div>
         `;
@@ -620,10 +579,10 @@ function updateFlashcardsList() {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-layer-group"></i>
-                <h3 data-translate="no_flashcards">Aucune flashcard disponible</h3>
-                <p data-translate="import_for_flashcards">Importez un cours pour générer des flashcards</p>
+                <h3>Aucune flashcard disponible</h3>
+                <p>Importez un cours pour générer des flashcards</p>
                 <button onclick="showSection('import')" class="btn-primary">
-                    <span data-translate="import_course">Importer un cours</span>
+                    Importer un cours
                 </button>
             </div>
         `;
@@ -658,10 +617,10 @@ function updateMatieresList() {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-book"></i>
-                <h3 data-translate="no_subjects">Aucune matière créée</h3>
-                <p data-translate="create_first_subject">Créez votre première matière pour organiser vos cours</p>
+                <h3>Aucune matière créée</h3>
+                <p>Créez votre première matière pour organiser vos cours</p>
                 <button onclick="showCreateMatiereModal()" class="btn-primary">
-                    <span data-translate="create_subject">Créer une matière</span>
+                    Créer une matière
                 </button>
             </div>
         `;
@@ -707,7 +666,7 @@ function updateCourseSelects() {
     
     // Mettre à jour le sélecteur de matières
     if (matiereSelect) {
-        matiereSelect.innerHTML = '<option value="" data-translate="select_subject">Sélectionner une matière</option>' +
+        matiereSelect.innerHTML = '<option value="">Sélectionner une matière</option>' +
             userData.matieres.map(matiere => 
                 `<option value="${matiere.id}">${matiere.name}</option>`
             ).join('');
@@ -715,46 +674,11 @@ function updateCourseSelects() {
     
     // Mettre à jour le sélecteur de cours
     if (courseSelect) {
-        courseSelect.innerHTML = '<option value="" data-translate="all_courses">Tous les cours</option>' +
+        courseSelect.innerHTML = '<option value="">Tous les cours</option>' +
             userData.courses.map(course => 
                 `<option value="${course.id}">${course.name}</option>`
             ).join('');
     }
-}
-
-// Mise à jour de la liste des résumés
-function updateResumesList() {
-    const container = document.getElementById('resumesList');
-    if (!container) return;
-    
-    if (userData.resumes.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-file-alt"></i>
-                <h3 data-translate="no_summaries">Aucun résumé disponible</h3>
-                <p data-translate="import_for_summaries">Importez un cours pour générer des résumés</p>
-                <button onclick="showSection('import')" class="btn-primary">
-                    <span data-translate="import_course">Importer un cours</span>
-                </button>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = userData.resumes.map(resume => `
-        <div class="resume-card">
-            <div class="resume-header">
-                <h3>${resume.title}</h3>
-                <span>${formatDate(resume.date)}</span>
-            </div>
-            <div class="resume-content">
-                <p>${resume.content}</p>
-                <div class="resume-keypoints">
-                    ${resume.keyPoints.map(point => `<span class="keypoint">${point}</span>`).join('')}
-                </div>
-            </div>
-        </div>
-    `).join('');
 }
 
 // Mise à jour de l'affichage des statistiques
@@ -763,15 +687,11 @@ function updateStatsDisplay() {
     const qcmCount = document.getElementById('qcmCount');
     const flashcardsCount = document.getElementById('flashcardsCount');
     const scoreMoyen = document.getElementById('scoreMoyen');
-    const averageScore = document.getElementById('averageScore');
-    const globalProgressText = document.getElementById('globalProgressText');
     
     if (coursCount) coursCount.textContent = userData.stats.totalCourses;
     if (qcmCount) qcmCount.textContent = userData.stats.totalQcm;
     if (flashcardsCount) flashcardsCount.textContent = userData.stats.totalFlashcards;
     if (scoreMoyen) scoreMoyen.textContent = userData.stats.averageScore + '%';
-    if (averageScore) averageScore.textContent = userData.stats.averageScore + '%';
-    if (globalProgressText) globalProgressText.textContent = userData.stats.averageScore + '%';
 }
 
 // Fonctions utilitaires
@@ -843,11 +763,7 @@ function createMatiere(name, color, description) {
         name: name,
         color: color,
         description: description,
-        createdAt: new Date().toISOString(),
-        courses: [],
-        qcm: [],
-        flashcards: [],
-        resumes: []
+        createdAt: new Date().toISOString()
     };
     
     userData.matieres.push(matiere);
@@ -856,101 +772,6 @@ function createMatiere(name, color, description) {
     updateCourseSelects();
     
     showMessage(`Matière "${name}" créée avec succès !`, true);
-}
-
-// Fonctions pour le visionneur PDF
-function openPdfViewer(courseId) {
-    console.log('Ouverture visionneur PDF pour cours:', courseId);
-    
-    const course = userData.courses.find(c => c.id === courseId);
-    if (!course || !course.pdfData) {
-        showMessage('Aucun PDF disponible pour ce cours', false);
-        return;
-    }
-    
-    const modal = document.getElementById('pdfViewerModal');
-    const title = document.getElementById('pdfViewerTitle');
-    
-    if (modal && title) {
-        title.textContent = course.name;
-        modal.style.display = 'block';
-        
-        // Convertir les données base64 en ArrayBuffer
-        const pdfData = atob(course.pdfData.split(',')[1]);
-        const pdfArray = new Uint8Array(pdfData.length);
-        for (let i = 0; i < pdfData.length; i++) {
-            pdfArray[i] = pdfData.charCodeAt(i);
-        }
-        
-        // Charger le PDF
-        if (typeof pdfjsLib !== 'undefined') {
-            pdfjsLib.getDocument({data: pdfArray}).promise.then(function(pdf) {
-                pdfDoc = pdf;
-                pageNum = 1;
-                renderPage(pageNum);
-            }).catch(function(error) {
-                console.error('Erreur lors du chargement du PDF:', error);
-                showMessage('Erreur lors du chargement du PDF', false);
-            });
-        } else {
-            showMessage('Visionneur PDF non disponible', false);
-        }
-    }
-}
-
-function renderPage(num) {
-    if (!pdfDoc) return;
-    
-    pageRendering = true;
-    
-    pdfDoc.getPage(num).then(function(page) {
-        const viewport = page.getViewport({scale: scale});
-        const canvas = document.getElementById('pdfCanvas');
-        const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        
-        const renderContext = {
-            canvasContext: context,
-            viewport: viewport
-        };
-        
-        const renderTask = page.render(renderContext);
-        
-        renderTask.promise.then(function() {
-            pageRendering = false;
-            if (pageNumPending !== null) {
-                renderPage(pageNumPending);
-                pageNumPending = null;
-            }
-        });
-    });
-    
-    const pageInfo = document.getElementById('pageInfo');
-    if (pageInfo) {
-        pageInfo.textContent = `Page ${num} sur ${pdfDoc.numPages}`;
-    }
-}
-
-function previousPage() {
-    if (pageNum <= 1) return;
-    pageNum--;
-    renderPage(pageNum);
-}
-
-function nextPage() {
-    if (pageNum >= pdfDoc.numPages) return;
-    pageNum++;
-    renderPage(pageNum);
-}
-
-function closePdfViewer() {
-    const modal = document.getElementById('pdfViewerModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    pdfDoc = null;
-    pageNum = 1;
 }
 
 // Fonctions pour l'IA Chat
@@ -1012,16 +833,6 @@ function startQcm(courseId) {
 
 function startFlashcards(courseId) {
     showMessage('Fonctionnalité Flashcards en cours de développement', false);
-}
-
-function closeQcmModal() {
-    const modal = document.getElementById('qcmModal');
-    if (modal) modal.style.display = 'none';
-}
-
-function closeFlashcardsModal() {
-    const modal = document.getElementById('flashcardsModal');
-    if (modal) modal.style.display = 'none';
 }
 
 // Fonctions pour le profil
@@ -1109,10 +920,6 @@ function changePassword() {
     }
 }
 
-function selectAvatar() {
-    showMessage('Fonctionnalité avatar en cours de développement', true);
-}
-
 function updateUserName() {
     const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
     const userNameElement = document.getElementById('userName');
@@ -1158,14 +965,8 @@ window.showSection = showSection;
 window.logout = logout;
 window.startQcm = startQcm;
 window.startFlashcards = startFlashcards;
-window.closeQcmModal = closeQcmModal;
-window.closeFlashcardsModal = closeFlashcardsModal;
 window.showCreateMatiereModal = showCreateMatiereModal;
 window.closeCreateMatiereModal = closeCreateMatiereModal;
-window.openPdfViewer = openPdfViewer;
-window.closePdfViewer = closePdfViewer;
-window.previousPage = previousPage;
-window.nextPage = nextPage;
 window.sendMessage = sendMessage;
 window.viewMatiere = viewMatiere;
 window.editMatiere = editMatiere;
@@ -1174,4 +975,3 @@ window.showProfileModal = showProfileModal;
 window.closeProfileModal = closeProfileModal;
 window.showChangePasswordModal = showChangePasswordModal;
 window.closeChangePasswordModal = closeChangePasswordModal;
-window.selectAvatar = selectAvatar;
