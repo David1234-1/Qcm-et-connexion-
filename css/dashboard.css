@@ -126,11 +126,6 @@ body {
     background: #dc2626;
     color: white;
 }
-}
-
-.btn-logout:hover {
-    background: #dc2626;
-}
 
 /* Contenu principal */
 .main-content {
