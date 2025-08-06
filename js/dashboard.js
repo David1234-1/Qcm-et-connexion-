@@ -23,6 +23,7 @@ let scale = 1.5;
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard initialisation...');
     checkAuth();
     loadUserData();
     initializeEventListeners();
@@ -41,43 +42,192 @@ function checkAuth() {
     const token = localStorage.getItem('userToken');
     
     if (!user || !token) {
+        console.log('Non authentifié, redirection vers login');
         window.location.href = 'login.html';
         return;
     }
     
-    currentUser = JSON.parse(user);
-    updateUserName();
+    try {
+        currentUser = JSON.parse(user);
+        console.log('Utilisateur connecté:', currentUser);
+    } catch (error) {
+        console.error('Erreur parsing utilisateur:', error);
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('userToken');
+        window.location.href = 'login.html';
+    }
 }
 
 // Chargement des données utilisateur
 function loadUserData() {
     const savedData = localStorage.getItem('userData');
     if (savedData) {
-        userData = JSON.parse(savedData);
+        try {
+            userData = JSON.parse(savedData);
+            console.log('Données utilisateur chargées');
+        } catch (error) {
+            console.error('Erreur chargement données:', error);
+            userData = {
+                courses: [],
+                qcm: [],
+                flashcards: [],
+                resumes: [],
+                matieres: [],
+                stats: {
+                    totalCourses: 0,
+                    totalQcm: 0,
+                    totalFlashcards: 0,
+                    averageScore: 0
+                }
+            };
+        }
     }
 }
 
 // Sauvegarde des données utilisateur
 function saveUserData() {
-    localStorage.setItem('userData', JSON.stringify(userData));
+    try {
+        localStorage.setItem('userData', JSON.stringify(userData));
+        console.log('Données sauvegardées');
+    } catch (error) {
+        console.error('Erreur sauvegarde:', error);
+    }
 }
 
 // Initialisation des événements
 function initializeEventListeners() {
+    console.log('Initialisation des événements...');
+    
     // Navigation
-    document.querySelectorAll('.nav-link').forEach(link => {
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             const section = this.getAttribute('href').substring(1);
+            console.log('Navigation vers:', section);
             showSection(section);
         });
     });
+    
+    // Gestion du drag & drop pour les fichiers
+    const uploadArea = document.getElementById('uploadArea');
+    if (uploadArea) {
+        console.log('Configuration upload area...');
+        
+        uploadArea.addEventListener('click', function() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) {
+                fileInput.click();
+            }
+        });
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#2563eb';
+            this.style.backgroundColor = '#eff6ff';
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e5e7eb';
+            this.style.backgroundColor = 'white';
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#e5e7eb';
+            this.style.backgroundColor = 'white';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                console.log('Fichier déposé:', files[0].name);
+                handleFileUpload(files[0]);
+            }
+        });
+    }
+    
+    // Gestion de la sélection de fichier
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                console.log('Fichier sélectionné:', e.target.files[0].name);
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+    }
+    
+    // Gestion du formulaire de création de matière
+    const createMatiereForm = document.getElementById('createMatiereForm');
+    if (createMatiereForm) {
+        createMatiereForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nameInput = document.getElementById('matiereName');
+            const colorInput = document.getElementById('matiereColor');
+            const descriptionInput = document.getElementById('matiereDescription');
+            
+            const name = nameInput ? nameInput.value.trim() : '';
+            const color = colorInput ? colorInput.value : '#2563eb';
+            const description = descriptionInput ? descriptionInput.value.trim() : '';
+            
+            if (!name) {
+                showMessage('Veuillez saisir un nom de matière', false);
+                return;
+            }
+            
+            createMatiere(name, color, description);
+            closeCreateMatiereModal();
+        });
+    }
+    
+    // Gestion du formulaire de profil
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveProfile();
+        });
+    }
+    
+    // Gestion du formulaire de changement de mot de passe
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            changePassword();
+        });
+    }
+    
+    // Gestion de l'entrée dans le chat
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
+    
+    // Gestion du sélecteur de langue
+    const languageSelect = document.getElementById('languageSelect');
+    if (languageSelect) {
+        languageSelect.value = localStorage.getItem('language') || 'fr';
+        languageSelect.addEventListener('change', function() {
+            if (typeof changeLanguage === 'function') {
+                changeLanguage(this.value);
+            }
+        });
+    }
 }
 
 // Affichage des sections
 function showSection(sectionId) {
+    console.log('Affichage section:', sectionId);
+    
     // Masquer toutes les sections
-    document.querySelectorAll('.dashboard-section').forEach(section => {
+    const sections = document.querySelectorAll('.dashboard-section');
+    sections.forEach(section => {
         section.classList.remove('active');
     });
     
@@ -88,7 +238,8 @@ function showSection(sectionId) {
     }
     
     // Mettre à jour la navigation
-    document.querySelectorAll('.nav-link').forEach(link => {
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
         link.classList.remove('active');
     });
     
@@ -100,6 +251,8 @@ function showSection(sectionId) {
 
 // Gestion de l'upload de fichiers
 function handleFileUpload(file) {
+    console.log('Traitement fichier:', file.name);
+    
     if (!validatePDF(file)) {
         return;
     }
@@ -171,6 +324,8 @@ function validatePDF(file) {
 
 // Finalisation de l'upload
 function completeFileUpload(fileName, fileSize, pdfData) {
+    console.log('Finalisation upload:', fileName);
+    
     const progressContainer = document.getElementById('importProgress');
     if (progressContainer) {
         progressContainer.style.display = 'none';
@@ -358,6 +513,7 @@ function updateStats() {
 
 // Mise à jour du dashboard
 function updateDashboard() {
+    console.log('Mise à jour dashboard...');
     updateStats();
     updateRecentCourses();
     
@@ -633,6 +789,8 @@ function formatDate(dateString) {
 }
 
 function showMessage(message, isSuccess = false) {
+    console.log('Message:', message, isSuccess);
+    
     // Créer un élément de message temporaire
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
@@ -659,6 +817,7 @@ function showMessage(message, isSuccess = false) {
 
 // Fonctions pour les matières
 function showCreateMatiereModal() {
+    console.log('Ouverture modal création matière');
     const modal = document.getElementById('createMatiereModal');
     if (modal) {
         modal.style.display = 'block';
@@ -677,6 +836,8 @@ function closeCreateMatiereModal() {
 }
 
 function createMatiere(name, color, description) {
+    console.log('Création matière:', name, color, description);
+    
     const matiere = {
         id: generateId(),
         name: name,
@@ -699,6 +860,8 @@ function createMatiere(name, color, description) {
 
 // Fonctions pour le visionneur PDF
 function openPdfViewer(courseId) {
+    console.log('Ouverture visionneur PDF pour cours:', courseId);
+    
     const course = userData.courses.find(c => c.id === courseId);
     if (!course || !course.pdfData) {
         showMessage('Aucun PDF disponible pour ce cours', false);
@@ -863,6 +1026,7 @@ function closeFlashcardsModal() {
 
 // Fonctions pour le profil
 function showProfileModal() {
+    console.log('Ouverture modal profil');
     const modal = document.getElementById('profileModal');
     const firstName = document.getElementById('firstName');
     const lastName = document.getElementById('lastName');
@@ -875,7 +1039,7 @@ function showProfileModal() {
         if (firstName) firstName.value = userProfile.firstName || '';
         if (lastName) lastName.value = userProfile.lastName || '';
         if (email) email.value = currentUser ? currentUser.email : '';
-        if (languageSelect) languageSelect.value = currentLanguage || 'fr';
+        if (languageSelect) languageSelect.value = localStorage.getItem('language') || 'fr';
         
         modal.style.display = 'block';
     }
@@ -894,7 +1058,7 @@ function saveProfile() {
         const userProfile = {
             firstName: firstName.value.trim(),
             lastName: lastName.value.trim(),
-            language: currentLanguage || 'fr'
+            language: localStorage.getItem('language') || 'fr'
         };
         localStorage.setItem('userProfile', JSON.stringify(userProfile));
         
@@ -988,124 +1152,6 @@ function deleteMatiere(matiereId) {
         showMessage('Matière supprimée avec succès', true);
     }
 }
-
-// Gestion des événements au chargement
-document.addEventListener('DOMContentLoaded', function() {
-    // Gestion du formulaire de création de matière
-    const createMatiereForm = document.getElementById('createMatiereForm');
-    const matiereColor = document.getElementById('matiereColor');
-    const colorPreview = document.getElementById('colorPreview');
-    
-    if (createMatiereForm) {
-        createMatiereForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const nameInput = document.getElementById('matiereName');
-            const name = nameInput ? nameInput.value.trim() : '';
-            const color = matiereColor ? matiereColor.value : '#2563eb';
-            const descriptionInput = document.getElementById('matiereDescription');
-            const description = descriptionInput ? descriptionInput.value.trim() : '';
-            
-            if (!name) {
-                showMessage('Veuillez saisir un nom de matière', false);
-                return;
-            }
-            
-            createMatiere(name, color, description);
-            closeCreateMatiereModal();
-        });
-    }
-    
-    if (matiereColor && colorPreview) {
-        matiereColor.addEventListener('change', function() {
-            colorPreview.style.backgroundColor = this.value;
-        });
-        
-        // Initialiser la couleur
-        colorPreview.style.backgroundColor = matiereColor.value;
-    }
-    
-    // Gestion de l'entrée dans le chat
-    const chatInput = document.getElementById('chatInput');
-    if (chatInput) {
-        chatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-    }
-    
-    // Gestion du formulaire de profil
-    const profileForm = document.getElementById('profileForm');
-    if (profileForm) {
-        profileForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveProfile();
-        });
-    }
-    
-    // Gestion du formulaire de changement de mot de passe
-    const changePasswordForm = document.getElementById('changePasswordForm');
-    if (changePasswordForm) {
-        changePasswordForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            changePassword();
-        });
-    }
-    
-    // Gestion du sélecteur de langue
-    const languageSelect = document.getElementById('languageSelect');
-    if (languageSelect) {
-        languageSelect.value = currentLanguage || 'fr';
-        languageSelect.addEventListener('change', function() {
-            if (typeof changeLanguage === 'function') {
-                changeLanguage(this.value);
-            }
-        });
-    }
-    
-    // Gestion du drag & drop pour les fichiers
-    const uploadArea = document.getElementById('uploadArea');
-    if (uploadArea) {
-        uploadArea.addEventListener('click', function() {
-            const fileInput = document.getElementById('fileInput');
-            if (fileInput) fileInput.click();
-        });
-        
-        uploadArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.style.borderColor = '#2563eb';
-            this.style.backgroundColor = '#eff6ff';
-        });
-        
-        uploadArea.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.style.borderColor = '#e5e7eb';
-            this.style.backgroundColor = 'white';
-        });
-        
-        uploadArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.style.borderColor = '#e5e7eb';
-            this.style.backgroundColor = 'white';
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFileUpload(files[0]);
-            }
-        });
-    }
-    
-    // Gestion de la sélection de fichier
-    const fileInput = document.getElementById('fileInput');
-    if (fileInput) {
-        fileInput.addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                handleFileUpload(e.target.files[0]);
-            }
-        });
-    }
-});
 
 // Export des fonctions pour utilisation globale
 window.showSection = showSection;

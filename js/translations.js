@@ -106,10 +106,15 @@ const translations = {
         confirm_new_password: "Confirmer le nouveau mot de passe",
         update_password: "Mettre à jour",
         
-        // PDF Viewer
+        // Modals
         pdf_viewer: "Visionneur PDF",
         previous: "Précédent",
-        next: "Suivant"
+        next: "Suivant",
+        
+        // Messages
+        success: "Succès",
+        error: "Erreur",
+        loading: "Chargement..."
     },
     
     en: {
@@ -131,29 +136,29 @@ const translations = {
         average_score: "Average score",
         quick_actions: "Quick actions",
         manage_subjects: "Manage subjects",
-        import_course: "Import course",
-        start_qcm: "Start QCM",
-        ask_ai: "Ask AI",
+        import_course: "Import a course",
+        start_qcm: "Start a QCM",
+        ask_ai: "Ask AI a question",
         recent_courses: "Recent courses",
         no_courses: "No imported courses",
         start_import: "Start by importing your first course",
         
-        // Subjects
+        // Matières
         subject_management: "Subject management",
         subject_description: "Organize your courses by subjects and customize your space",
-        create_subject: "Create subject",
+        create_subject: "Create a subject",
         no_subjects: "No subjects created",
         create_first_subject: "Create your first subject to organize your courses",
         subject_name: "Subject name",
         color: "Color",
         description_optional: "Description (optional)",
-        create_new_subject: "Create new subject",
+        create_new_subject: "Create a new subject",
         
         // Import
         import_description: "Import your PDFs and let AI automatically generate QCM and flashcards",
         drag_drop_pdf: "Drag and drop your PDF here",
         or_click_select: "or click to select a file",
-        choose_file: "Choose file",
+        choose_file: "Choose a file",
         generation_options: "Generation options",
         subject: "Subject",
         select_subject: "Select a subject",
@@ -175,41 +180,41 @@ const translations = {
         no_flashcards: "No flashcards available",
         import_for_flashcards: "Import a course to generate flashcards",
         
-        // Summaries
-        summaries_description: "View AI-generated summaries",
+        // Résumés
+        summaries_description: "Consult AI-generated summaries",
         no_summaries: "No summaries available",
         import_for_summaries: "Import a course to generate summaries",
         
-        // AI Chat
+        // IA Chat
         ai_assistant: "AI Assistant",
         ai_description: "Ask AI questions about your imported courses",
         ai_welcome: "Hello! I'm your AI assistant. Ask me questions about your imported courses and I'll help you better understand the concepts.",
         all_courses: "All courses",
         ask_question: "Ask your question...",
         
-        // Statistics
+        // Statistiques
         statistics_description: "Track your progress and performance",
         global_progress: "Global progress",
         average_qcm_score: "Average QCM score",
-        subject_details: "Subject details",
+        subject_details: "Details by subject",
         no_data: "No data available",
         start_studying: "Start studying to see your statistics",
         
-        // Profile
+        // Profil
         profile_settings: "Profile settings",
         personal_info: "Personal information",
         first_name: "First name",
         last_name: "Last name",
         email: "Email",
         avatar: "Avatar",
-        select_avatar: "Select avatar",
+        select_avatar: "Select an avatar",
         language: "Language",
         select_language: "Select language",
-        french: "French",
+        french: "Français",
         english: "English",
-        german: "German",
-        spanish: "Spanish",
-        portuguese: "Portuguese",
+        german: "Deutsch",
+        spanish: "Español",
+        portuguese: "Português",
         security: "Security",
         change_password: "Change password",
         save_changes: "Save changes",
@@ -218,10 +223,15 @@ const translations = {
         confirm_new_password: "Confirm new password",
         update_password: "Update",
         
-        // PDF Viewer
+        // Modals
         pdf_viewer: "PDF Viewer",
         previous: "Previous",
-        next: "Next"
+        next: "Next",
+        
+        // Messages
+        success: "Success",
+        error: "Error",
+        loading: "Loading..."
     },
     
     de: {
@@ -229,7 +239,7 @@ const translations = {
         dashboard: "Dashboard",
         subjects: "Fächer",
         import: "Importieren",
-        qcm: "MCQ",
+        qcm: "QCM",
         flashcards: "Karteikarten",
         summaries: "Zusammenfassungen",
         ai_chat: "KI-Chat",
@@ -239,20 +249,20 @@ const translations = {
         welcome_message: "Willkommen bei StudyHub",
         welcome_subtitle: "Ihr intelligenter Lernraum",
         imported_courses: "Importierte Kurse",
-        generated_qcm: "Generierte MCQ",
+        generated_qcm: "Generierte QCM",
         average_score: "Durchschnittsnote",
         quick_actions: "Schnellaktionen",
         manage_subjects: "Fächer verwalten",
         import_course: "Kurs importieren",
-        start_qcm: "MCQ starten",
-        ask_ai: "KI fragen",
-        recent_courses: "Aktuelle Kurse",
+        start_qcm: "QCM starten",
+        ask_ai: "KI eine Frage stellen",
+        recent_courses: "Neueste Kurse",
         no_courses: "Keine importierten Kurse",
-        start_import: "Beginnen Sie mit dem Import Ihres ersten Kurses",
+        start_import: "Beginnen Sie mit dem Importieren Ihres ersten Kurses",
         
-        // Subjects
+        // Matières
         subject_management: "Fachverwaltung",
-        subject_description: "Organisieren Sie Ihre Kurse nach Fächern und passen Sie Ihren Bereich an",
+        subject_description: "Organisieren Sie Ihre Kurse nach Fächern und passen Sie Ihren Raum an",
         create_subject: "Fach erstellen",
         no_subjects: "Keine Fächer erstellt",
         create_first_subject: "Erstellen Sie Ihr erstes Fach, um Ihre Kurse zu organisieren",
@@ -262,14 +272,14 @@ const translations = {
         create_new_subject: "Neues Fach erstellen",
         
         // Import
-        import_description: "Importieren Sie Ihre PDFs und lassen Sie die KI automatisch MCQ und Karteikarten generieren",
+        import_description: "Importieren Sie Ihre PDFs und lassen Sie die KI automatisch QCM und Karteikarten generieren",
         drag_drop_pdf: "Ziehen Sie Ihre PDF hierher",
         or_click_select: "oder klicken Sie, um eine Datei auszuwählen",
         choose_file: "Datei auswählen",
         generation_options: "Generierungsoptionen",
         subject: "Fach",
         select_subject: "Fach auswählen",
-        qcm_count: "Anzahl der MCQ",
+        qcm_count: "Anzahl der QCM",
         difficulty_level: "Schwierigkeitsgrad",
         easy: "Einfach",
         medium: "Mittel",
@@ -278,36 +288,36 @@ const translations = {
         analyzing_document: "Dokument wird analysiert...",
         
         // QCM
-        qcm_description: "Trainieren Sie mit KI-generierten MCQ",
-        no_qcm: "Keine MCQ verfügbar",
-        import_for_qcm: "Importieren Sie einen Kurs, um MCQ zu generieren",
+        qcm_description: "Trainieren Sie mit KI-generierten QCM",
+        no_qcm: "Keine QCM verfügbar",
+        import_for_qcm: "Importieren Sie einen Kurs, um QCM zu generieren",
         
         // Flashcards
         flashcards_description: "Wiederholen Sie effizient mit generierten Karteikarten",
         no_flashcards: "Keine Karteikarten verfügbar",
         import_for_flashcards: "Importieren Sie einen Kurs, um Karteikarten zu generieren",
         
-        // Summaries
-        summaries_description: "Betrachten Sie KI-generierte Zusammenfassungen",
+        // Résumés
+        summaries_description: "Konsultieren Sie KI-generierte Zusammenfassungen",
         no_summaries: "Keine Zusammenfassungen verfügbar",
         import_for_summaries: "Importieren Sie einen Kurs, um Zusammenfassungen zu generieren",
         
-        // AI Chat
+        // IA Chat
         ai_assistant: "KI-Assistent",
         ai_description: "Stellen Sie der KI Fragen zu Ihren importierten Kursen",
-        ai_welcome: "Hallo! Ich bin Ihr KI-Assistent. Stellen Sie mir Fragen zu Ihren importierten Kursen und ich helfe Ihnen, die Konzepte besser zu verstehen.",
+        ai_welcome: "Hallo! Ich bin Ihr KI-Assistent. Stellen Sie mir Fragen zu Ihren importierten Kursen und ich helfe Ihnen dabei, die Konzepte besser zu verstehen.",
         all_courses: "Alle Kurse",
         ask_question: "Stellen Sie Ihre Frage...",
         
-        // Statistics
+        // Statistiques
         statistics_description: "Verfolgen Sie Ihren Fortschritt und Ihre Leistung",
-        global_progress: "Gesamtfortschritt",
-        average_qcm_score: "Durchschnittliche MCQ-Note",
-        subject_details: "Fachdetails",
+        global_progress: "Globaler Fortschritt",
+        average_qcm_score: "Durchschnittliche QCM-Note",
+        subject_details: "Details nach Fach",
         no_data: "Keine Daten verfügbar",
         start_studying: "Beginnen Sie mit dem Lernen, um Ihre Statistiken zu sehen",
         
-        // Profile
+        // Profil
         profile_settings: "Profileinstellungen",
         personal_info: "Persönliche Informationen",
         first_name: "Vorname",
@@ -317,11 +327,11 @@ const translations = {
         select_avatar: "Avatar auswählen",
         language: "Sprache",
         select_language: "Sprache auswählen",
-        french: "Französisch",
-        english: "Englisch",
+        french: "Français",
+        english: "English",
         german: "Deutsch",
-        spanish: "Spanisch",
-        portuguese: "Portugiesisch",
+        spanish: "Español",
+        portuguese: "Português",
         security: "Sicherheit",
         change_password: "Passwort ändern",
         save_changes: "Änderungen speichern",
@@ -330,10 +340,15 @@ const translations = {
         confirm_new_password: "Neues Passwort bestätigen",
         update_password: "Aktualisieren",
         
-        // PDF Viewer
+        // Modals
         pdf_viewer: "PDF-Viewer",
         previous: "Zurück",
-        next: "Weiter"
+        next: "Weiter",
+        
+        // Messages
+        success: "Erfolg",
+        error: "Fehler",
+        loading: "Laden..."
     },
     
     es: {
@@ -355,32 +370,32 @@ const translations = {
         average_score: "Puntuación media",
         quick_actions: "Acciones rápidas",
         manage_subjects: "Gestionar materias",
-        import_course: "Importar curso",
-        start_qcm: "Comenzar QCM",
-        ask_ai: "Preguntar IA",
+        import_course: "Importar un curso",
+        start_qcm: "Comenzar un QCM",
+        ask_ai: "Hacer una pregunta a la IA",
         recent_courses: "Cursos recientes",
         no_courses: "Ningún curso importado",
-        start_import: "Comienza importando tu primer curso",
+        start_import: "Comience importando su primer curso",
         
-        // Subjects
+        // Matières
         subject_management: "Gestión de materias",
-        subject_description: "Organiza tus cursos por materias y personaliza tu espacio",
-        create_subject: "Crear materia",
+        subject_description: "Organice sus cursos por materias y personalice su espacio",
+        create_subject: "Crear una materia",
         no_subjects: "Ninguna materia creada",
-        create_first_subject: "Crea tu primera materia para organizar tus cursos",
+        create_first_subject: "Cree su primera materia para organizar sus cursos",
         subject_name: "Nombre de la materia",
         color: "Color",
         description_optional: "Descripción (opcional)",
-        create_new_subject: "Crear nueva materia",
+        create_new_subject: "Crear una nueva materia",
         
         // Import
-        import_description: "Importa tus PDF y deja que la IA genere automáticamente QCM y tarjetas",
-        drag_drop_pdf: "Arrastra tu PDF aquí",
-        or_click_select: "o haz clic para seleccionar un archivo",
+        import_description: "Importe sus PDF y deje que la IA genere automáticamente QCM y tarjetas",
+        drag_drop_pdf: "Arrastre y suelte su PDF aquí",
+        or_click_select: "o haga clic para seleccionar un archivo",
         choose_file: "Elegir archivo",
         generation_options: "Opciones de generación",
         subject: "Materia",
-        select_subject: "Seleccionar materia",
+        select_subject: "Seleccionar una materia",
         qcm_count: "Número de QCM",
         difficulty_level: "Nivel de dificultad",
         easy: "Fácil",
@@ -390,36 +405,36 @@ const translations = {
         analyzing_document: "Analizando documento...",
         
         // QCM
-        qcm_description: "Entrena con QCM generados por IA",
+        qcm_description: "Entrene con QCM generados por IA",
         no_qcm: "Ningún QCM disponible",
-        import_for_qcm: "Importa un curso para generar QCM",
+        import_for_qcm: "Importe un curso para generar QCM",
         
         // Flashcards
-        flashcards_description: "Revisa eficientemente con tarjetas generadas",
+        flashcards_description: "Revise eficientemente con tarjetas generadas",
         no_flashcards: "Ninguna tarjeta disponible",
-        import_for_flashcards: "Importa un curso para generar tarjetas",
+        import_for_flashcards: "Importe un curso para generar tarjetas",
         
-        // Summaries
-        summaries_description: "Consulta resúmenes generados por IA",
+        // Résumés
+        summaries_description: "Consulte resúmenes generados por IA",
         no_summaries: "Ningún resumen disponible",
-        import_for_summaries: "Importa un curso para generar resúmenes",
+        import_for_summaries: "Importe un curso para generar resúmenes",
         
-        // AI Chat
+        // IA Chat
         ai_assistant: "Asistente IA",
-        ai_description: "Haz preguntas a la IA sobre tus cursos importados",
-        ai_welcome: "¡Hola! Soy tu asistente IA. Hazme preguntas sobre tus cursos importados y te ayudaré a entender mejor los conceptos.",
+        ai_description: "Haga preguntas a la IA sobre sus cursos importados",
+        ai_welcome: "¡Hola! Soy su asistente IA. Hágame preguntas sobre sus cursos importados y le ayudaré a entender mejor los conceptos.",
         all_courses: "Todos los cursos",
-        ask_question: "Haz tu pregunta...",
+        ask_question: "Haga su pregunta...",
         
-        // Statistics
-        statistics_description: "Sigue tu progreso y rendimiento",
+        // Statistiques
+        statistics_description: "Siga su progreso y rendimiento",
         global_progress: "Progreso global",
         average_qcm_score: "Puntuación media QCM",
         subject_details: "Detalles por materia",
         no_data: "No hay datos disponibles",
-        start_studying: "Comienza a estudiar para ver tus estadísticas",
+        start_studying: "Comience a estudiar para ver sus estadísticas",
         
-        // Profile
+        // Profil
         profile_settings: "Configuración del perfil",
         personal_info: "Información personal",
         first_name: "Nombre",
@@ -429,11 +444,11 @@ const translations = {
         select_avatar: "Seleccionar avatar",
         language: "Idioma",
         select_language: "Seleccionar idioma",
-        french: "Francés",
-        english: "Inglés",
-        german: "Alemán",
+        french: "Français",
+        english: "English",
+        german: "Deutsch",
         spanish: "Español",
-        portuguese: "Portugués",
+        portuguese: "Português",
         security: "Seguridad",
         change_password: "Cambiar contraseña",
         save_changes: "Guardar cambios",
@@ -442,10 +457,15 @@ const translations = {
         confirm_new_password: "Confirmar nueva contraseña",
         update_password: "Actualizar",
         
-        // PDF Viewer
+        // Modals
         pdf_viewer: "Visor PDF",
         previous: "Anterior",
-        next: "Siguiente"
+        next: "Siguiente",
+        
+        // Messages
+        success: "Éxito",
+        error: "Error",
+        loading: "Cargando..."
     },
     
     pt: {
@@ -467,32 +487,32 @@ const translations = {
         average_score: "Pontuação média",
         quick_actions: "Ações rápidas",
         manage_subjects: "Gerenciar matérias",
-        import_course: "Importar curso",
-        start_qcm: "Iniciar QCM",
-        ask_ai: "Perguntar IA",
+        import_course: "Importar um curso",
+        start_qcm: "Começar um QCM",
+        ask_ai: "Fazer uma pergunta à IA",
         recent_courses: "Cursos recentes",
         no_courses: "Nenhum curso importado",
         start_import: "Comece importando seu primeiro curso",
         
-        // Subjects
+        // Matières
         subject_management: "Gerenciamento de matérias",
         subject_description: "Organize seus cursos por matérias e personalize seu espaço",
-        create_subject: "Criar matéria",
+        create_subject: "Criar uma matéria",
         no_subjects: "Nenhuma matéria criada",
         create_first_subject: "Crie sua primeira matéria para organizar seus cursos",
         subject_name: "Nome da matéria",
         color: "Cor",
         description_optional: "Descrição (opcional)",
-        create_new_subject: "Criar nova matéria",
+        create_new_subject: "Criar uma nova matéria",
         
         // Import
         import_description: "Importe seus PDFs e deixe a IA gerar automaticamente QCM e cartões",
-        drag_drop_pdf: "Arraste seu PDF aqui",
+        drag_drop_pdf: "Arraste e solte seu PDF aqui",
         or_click_select: "ou clique para selecionar um arquivo",
         choose_file: "Escolher arquivo",
         generation_options: "Opções de geração",
         subject: "Matéria",
-        select_subject: "Selecionar matéria",
+        select_subject: "Selecionar uma matéria",
         qcm_count: "Número de QCM",
         difficulty_level: "Nível de dificuldade",
         easy: "Fácil",
@@ -511,19 +531,19 @@ const translations = {
         no_flashcards: "Nenhum cartão disponível",
         import_for_flashcards: "Importe um curso para gerar cartões",
         
-        // Summaries
+        // Résumés
         summaries_description: "Consulte resumos gerados por IA",
         no_summaries: "Nenhum resumo disponível",
         import_for_summaries: "Importe um curso para gerar resumos",
         
-        // AI Chat
+        // IA Chat
         ai_assistant: "Assistente IA",
         ai_description: "Faça perguntas à IA sobre seus cursos importados",
         ai_welcome: "Olá! Sou seu assistente IA. Faça-me perguntas sobre seus cursos importados e eu o ajudarei a entender melhor os conceitos.",
         all_courses: "Todos os cursos",
         ask_question: "Faça sua pergunta...",
         
-        // Statistics
+        // Statistiques
         statistics_description: "Acompanhe seu progresso e desempenho",
         global_progress: "Progresso global",
         average_qcm_score: "Pontuação média QCM",
@@ -531,7 +551,7 @@ const translations = {
         no_data: "Nenhum dado disponível",
         start_studying: "Comece a estudar para ver suas estatísticas",
         
-        // Profile
+        // Profil
         profile_settings: "Configurações do perfil",
         personal_info: "Informações pessoais",
         first_name: "Nome",
@@ -541,10 +561,10 @@ const translations = {
         select_avatar: "Selecionar avatar",
         language: "Idioma",
         select_language: "Selecionar idioma",
-        french: "Francês",
-        english: "Inglês",
-        german: "Alemão",
-        spanish: "Espanhol",
+        french: "Français",
+        english: "English",
+        german: "Deutsch",
+        spanish: "Español",
         portuguese: "Português",
         security: "Segurança",
         change_password: "Alterar senha",
@@ -554,18 +574,24 @@ const translations = {
         confirm_new_password: "Confirmar nova senha",
         update_password: "Atualizar",
         
-        // PDF Viewer
+        // Modals
         pdf_viewer: "Visualizador PDF",
         previous: "Anterior",
-        next: "Próximo"
+        next: "Próximo",
+        
+        // Messages
+        success: "Sucesso",
+        error: "Erro",
+        loading: "Carregando..."
     }
 };
 
 // Langue actuelle
 let currentLanguage = localStorage.getItem('language') || 'fr';
 
-// Fonction pour changer la langue
+// Fonction pour changer de langue
 function changeLanguage(lang) {
+    console.log('Changement de langue vers:', lang);
     currentLanguage = lang;
     localStorage.setItem('language', lang);
     updateTranslations();
@@ -573,6 +599,9 @@ function changeLanguage(lang) {
 
 // Fonction pour mettre à jour les traductions
 function updateTranslations() {
+    console.log('Mise à jour des traductions pour:', currentLanguage);
+    
+    // Mettre à jour les éléments avec data-translate
     const elements = document.querySelectorAll('[data-translate]');
     elements.forEach(element => {
         const key = element.getAttribute('data-translate');
@@ -591,14 +620,20 @@ function updateTranslations() {
     });
 }
 
-// Initialiser les traductions au chargement
-document.addEventListener('DOMContentLoaded', function() {
-    updateTranslations();
-});
-
 // Fonction pour obtenir une traduction
 function getTranslation(key) {
     return translations[currentLanguage] && translations[currentLanguage][key] 
         ? translations[currentLanguage][key] 
         : key;
 }
+
+// Initialiser les traductions au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initialisation des traductions...');
+    updateTranslations();
+});
+
+// Exporter les fonctions pour utilisation globale
+window.changeLanguage = changeLanguage;
+window.updateTranslations = updateTranslations;
+window.getTranslation = getTranslation;
