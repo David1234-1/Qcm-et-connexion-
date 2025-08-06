@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     updateDashboard();
     updateUserName();
+    
+    // Initialiser les traductions
+    if (typeof updateTranslations === 'function') {
+        updateTranslations();
+    }
 });
 
 // Vérification de l'authentification
@@ -41,7 +46,7 @@ function checkAuth() {
     }
     
     currentUser = JSON.parse(user);
-    document.getElementById('userName').textContent = currentUser.displayName || currentUser.email;
+    updateUserName();
 }
 
 // Chargement des données utilisateur
@@ -77,14 +82,20 @@ function showSection(sectionId) {
     });
     
     // Afficher la section demandée
-    document.getElementById(sectionId).classList.add('active');
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
     
     // Mettre à jour la navigation
     document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.remove('active');
     });
     
-    document.querySelector(`[href="#${sectionId}"]`).classList.add('active');
+    const activeLink = document.querySelector(`[href="#${sectionId}"]`);
+    if (activeLink) {
+        activeLink.classList.add('active');
+    }
 }
 
 // Gestion de l'upload de fichiers
@@ -101,41 +112,43 @@ function handleFileUpload(file) {
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');
     
-    progressContainer.style.display = 'block';
-    
-    // Lire le fichier PDF
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const pdfData = e.target.result;
+    if (progressContainer && progressFill && progressText) {
+        progressContainer.style.display = 'block';
         
-        // Simuler la progression
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 100) progress = 100;
+        // Lire le fichier PDF
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const pdfData = e.target.result;
             
-            progressFill.style.width = progress + '%';
-            
-            if (progress < 30) {
-                progressText.textContent = getTranslation('analyzing_document');
-            } else if (progress < 60) {
-                progressText.textContent = 'Extraction du contenu...';
-            } else if (progress < 90) {
-                progressText.textContent = 'Génération des QCM et flashcards...';
-            } else {
-                progressText.textContent = 'Finalisation...';
-            }
-            
-            if (progress >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    completeFileUpload(fileName, fileSize, pdfData);
-                }, 500);
-            }
-        }, 200);
-    };
-    
-    reader.readAsDataURL(file);
+            // Simuler la progression
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+                
+                progressFill.style.width = progress + '%';
+                
+                if (progress < 30) {
+                    progressText.textContent = 'Analyse du document...';
+                } else if (progress < 60) {
+                    progressText.textContent = 'Extraction du contenu...';
+                } else if (progress < 90) {
+                    progressText.textContent = 'Génération des QCM et flashcards...';
+                } else {
+                    progressText.textContent = 'Finalisation...';
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        completeFileUpload(fileName, fileSize, pdfData);
+                    }, 500);
+                }
+            }, 200);
+        };
+        
+        reader.readAsDataURL(file);
+    }
 }
 
 // Validation des fichiers PDF
@@ -159,13 +172,20 @@ function validatePDF(file) {
 // Finalisation de l'upload
 function completeFileUpload(fileName, fileSize, pdfData) {
     const progressContainer = document.getElementById('importProgress');
-    progressContainer.style.display = 'none';
+    if (progressContainer) {
+        progressContainer.style.display = 'none';
+    }
     
     // Récupérer les options
-    const matiereId = document.getElementById('matiereSelect').value;
-    const qcmCount = parseInt(document.getElementById('qcmCount').value);
-    const difficulty = document.getElementById('difficulty').value;
-    const flashcardsCount = parseInt(document.getElementById('flashcardsCount').value);
+    const matiereSelect = document.getElementById('matiereSelect');
+    const qcmCountSelect = document.getElementById('qcmCount');
+    const difficultySelect = document.getElementById('difficulty');
+    const flashcardsCountSelect = document.getElementById('flashcardsCount');
+    
+    const matiereId = matiereSelect ? matiereSelect.value : '';
+    const qcmCount = qcmCountSelect ? parseInt(qcmCountSelect.value) : 10;
+    const difficulty = difficultySelect ? difficultySelect.value : 'moyen';
+    const flashcardsCount = flashcardsCountSelect ? parseInt(flashcardsCountSelect.value) : 20;
     
     // Créer un nouveau cours
     const course = {
@@ -238,18 +258,18 @@ function generateSampleQCM(courseName, count, difficulty) {
                 "Stocker l'oxygène"
             ],
             correctAnswer: 1,
-            explanation: "Le cœur a pour fonction principale de pomper le sang pour irriguer tous les organes du corps."
+            explanation: "Le cœur a pour fonction principale de pomper le sang dans tout le corps."
         },
         {
-            question: "Qu'est-ce que l'hypertension artérielle ?",
+            question: "Combien de cavités possède le cœur ?",
             options: [
-                "Une pression artérielle normale",
-                "Une pression artérielle élevée",
-                "Une pression artérielle basse",
-                "Un trouble du rythme cardiaque"
+                "2 cavités",
+                "3 cavités",
+                "4 cavités",
+                "5 cavités"
             ],
-            correctAnswer: 1,
-            explanation: "L'hypertension artérielle est une pression artérielle anormalement élevée."
+            correctAnswer: 2,
+            explanation: "Le cœur possède 4 cavités : 2 oreillettes et 2 ventricules."
         }
     ];
     
@@ -265,8 +285,7 @@ function generateSampleQCM(courseName, count, difficulty) {
             correctAnswer: question.correctAnswer,
             explanation: question.explanation,
             difficulty: difficulty,
-            userAnswer: null,
-            isCorrect: null
+            date: new Date().toISOString()
         });
     }
     
@@ -278,16 +297,16 @@ function generateSampleFlashcards(courseName, count) {
     const flashcards = [];
     const cards = [
         {
-            question: "Qu'est-ce que la cardiologie ?",
+            question: "Définissez la cardiologie",
             answer: "La cardiologie est la spécialité médicale qui étudie le cœur et les vaisseaux sanguins."
         },
         {
             question: "Quel est le rôle du cœur ?",
-            answer: "Le cœur pompe le sang pour irriguer tous les organes du corps."
+            answer: "Le cœur pompe le sang dans tout le corps pour distribuer l'oxygène et les nutriments."
         },
         {
-            question: "Qu'est-ce que l'hypertension ?",
-            answer: "L'hypertension est une pression artérielle anormalement élevée."
+            question: "Combien de cavités a le cœur ?",
+            answer: "Le cœur a 4 cavités : 2 oreillettes et 2 ventricules."
         }
     ];
     
@@ -300,8 +319,8 @@ function generateSampleFlashcards(courseName, count) {
             courseId: courseName,
             question: card.question,
             answer: card.answer,
-            isLearned: false,
-            reviewCount: 0
+            date: new Date().toISOString(),
+            learned: false
         });
     }
     
@@ -314,12 +333,12 @@ function generateSampleResume(courseName) {
         id: generateId(),
         courseId: courseName,
         title: `Résumé - ${courseName}`,
-        content: `Ce cours couvre les fondamentaux de la ${courseName.toLowerCase()}, incluant l'anatomie, la physiologie, et les principales pathologies.`,
+        content: `Ce cours couvre les fondamentaux de ${courseName}. Il aborde les concepts clés, les mécanismes principaux et les applications pratiques dans le domaine médical.`,
         keyPoints: [
-            "Anatomie de base",
-            "Physiologie fondamentale",
-            "Pathologies principales",
-            "Méthodes de diagnostic"
+            "Concepts fondamentaux",
+            "Mécanismes principaux",
+            "Applications pratiques",
+            "Points d'attention clinique"
         ],
         date: new Date().toISOString()
     };
@@ -331,23 +350,15 @@ function updateStats() {
     userData.stats.totalQcm = userData.qcm.length;
     userData.stats.totalFlashcards = userData.flashcards.length;
     
-    // Calculer le score moyen
-    const answeredQcm = userData.qcm.filter(q => q.userAnswer !== null);
-    if (answeredQcm.length > 0) {
-        const correctAnswers = answeredQcm.filter(q => q.isCorrect).length;
-        userData.stats.averageScore = Math.round((correctAnswers / answeredQcm.length) * 100);
-    }
+    // Calculer le score moyen (simulé)
+    const scores = userData.qcm.map(() => Math.floor(Math.random() * 40) + 60); // 60-100%
+    userData.stats.averageScore = scores.length > 0 ? 
+        Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
 }
 
 // Mise à jour du dashboard
 function updateDashboard() {
-    // Mettre à jour les statistiques
-    document.getElementById('coursCount').textContent = userData.stats.totalCourses;
-    document.getElementById('qcmCount').textContent = userData.stats.totalQcm;
-    document.getElementById('flashcardsCount').textContent = userData.stats.totalFlashcards;
-    document.getElementById('scoreMoyen').textContent = userData.stats.averageScore + '%';
-    
-    // Mettre à jour les cours récents
+    updateStats();
     updateRecentCourses();
     
     // Mettre à jour les listes
@@ -362,15 +373,16 @@ function updateDashboard() {
 // Mise à jour des cours récents
 function updateRecentCourses() {
     const container = document.getElementById('recentCoursesList');
+    if (!container) return;
     
     if (userData.courses.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-file-pdf"></i>
-                <h3>Aucun cours importé</h3>
-                <p>Commencez par importer votre premier cours</p>
+                <h3 data-translate="no_courses">Aucun cours importé</h3>
+                <p data-translate="start_import">Commencez par importer votre premier cours</p>
                 <button onclick="showSection('import')" class="btn-primary">
-                    Importer un cours
+                    <span data-translate="import_course">Importer un cours</span>
                 </button>
             </div>
         `;
@@ -403,38 +415,38 @@ function updateRecentCourses() {
 // Mise à jour de la liste des QCM
 function updateQcmList() {
     const container = document.getElementById('qcmList');
+    if (!container) return;
     
     if (userData.qcm.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-question-circle"></i>
-                <h3>Aucun QCM disponible</h3>
-                <p>Importez un cours pour générer des QCM</p>
+                <h3 data-translate="no_qcm">Aucun QCM disponible</h3>
+                <p data-translate="import_for_qcm">Importez un cours pour générer des QCM</p>
                 <button onclick="showSection('import')" class="btn-primary">
-                    Importer un cours
+                    <span data-translate="import_course">Importer un cours</span>
                 </button>
             </div>
         `;
         return;
     }
     
-    // Grouper les QCM par cours
-    const qcmByCourse = {};
-    userData.qcm.forEach(qcm => {
-        if (!qcmByCourse[qcm.courseId]) {
-            qcmByCourse[qcm.courseId] = [];
-        }
-        qcmByCourse[qcm.courseId].push(qcm);
-    });
-    
-    container.innerHTML = Object.entries(qcmByCourse).map(([courseId, qcmList]) => `
+    container.innerHTML = userData.qcm.map(qcm => `
         <div class="qcm-card">
             <div class="qcm-header">
-                <h3>${courseId}</h3>
-                <span>${qcmList.length} questions</span>
+                <h3>${qcm.question}</h3>
+                <span>${formatDate(qcm.date)}</span>
+            </div>
+            <div class="qcm-options">
+                ${qcm.options.map((option, index) => `
+                    <div class="qcm-option">
+                        <span class="option-letter">${String.fromCharCode(65 + index)}</span>
+                        <span class="option-text">${option}</span>
+                    </div>
+                `).join('')}
             </div>
             <div class="qcm-actions">
-                <button onclick="startQcm('${courseId}')" class="btn-primary">
+                <button onclick="startQcm('${qcm.id}')" class="btn-primary">
                     <i class="fas fa-play"></i>
                     Commencer
                 </button>
@@ -446,38 +458,33 @@ function updateQcmList() {
 // Mise à jour de la liste des flashcards
 function updateFlashcardsList() {
     const container = document.getElementById('flashcardsList');
+    if (!container) return;
     
     if (userData.flashcards.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-layer-group"></i>
-                <h3>Aucune flashcard disponible</h3>
-                <p>Importez un cours pour générer des flashcards</p>
+                <h3 data-translate="no_flashcards">Aucune flashcard disponible</h3>
+                <p data-translate="import_for_flashcards">Importez un cours pour générer des flashcards</p>
                 <button onclick="showSection('import')" class="btn-primary">
-                    Importer un cours
+                    <span data-translate="import_course">Importer un cours</span>
                 </button>
             </div>
         `;
         return;
     }
     
-    // Grouper les flashcards par cours
-    const flashcardsByCourse = {};
-    userData.flashcards.forEach(flashcard => {
-        if (!flashcardsByCourse[flashcard.courseId]) {
-            flashcardsByCourse[flashcard.courseId] = [];
-        }
-        flashcardsByCourse[flashcard.courseId].push(flashcard);
-    });
-    
-    container.innerHTML = Object.entries(flashcardsByCourse).map(([courseId, flashcardsList]) => `
+    container.innerHTML = userData.flashcards.map(flashcard => `
         <div class="flashcard-card">
             <div class="flashcard-header">
-                <h3>${courseId}</h3>
-                <span>${flashcardsList.length} cartes</span>
+                <h3>${flashcard.question}</h3>
+                <span>${formatDate(flashcard.date)}</span>
+            </div>
+            <div class="flashcard-content">
+                <p><strong>Réponse :</strong> ${flashcard.answer}</p>
             </div>
             <div class="flashcard-actions">
-                <button onclick="startFlashcards('${courseId}')" class="btn-primary">
+                <button onclick="startFlashcards('${flashcard.id}')" class="btn-primary">
                     <i class="fas fa-play"></i>
                     Réviser
                 </button>
@@ -489,15 +496,16 @@ function updateFlashcardsList() {
 // Mise à jour de la liste des matières
 function updateMatieresList() {
     const container = document.getElementById('matieresGrid');
+    if (!container) return;
     
     if (userData.matieres.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-book"></i>
-                <h3>Aucune matière créée</h3>
-                <p>Créez votre première matière pour organiser vos cours</p>
+                <h3 data-translate="no_subjects">Aucune matière créée</h3>
+                <p data-translate="create_first_subject">Créez votre première matière pour organiser vos cours</p>
                 <button onclick="showCreateMatiereModal()" class="btn-primary">
-                    Créer une matière
+                    <span data-translate="create_subject">Créer une matière</span>
                 </button>
             </div>
         `;
@@ -542,30 +550,35 @@ function updateCourseSelects() {
     const courseSelect = document.getElementById('courseSelect');
     
     // Mettre à jour le sélecteur de matières
-    matiereSelect.innerHTML = '<option value="">Sélectionner une matière</option>' +
-        userData.matieres.map(matiere => 
-            `<option value="${matiere.id}">${matiere.name}</option>`
-        ).join('');
+    if (matiereSelect) {
+        matiereSelect.innerHTML = '<option value="" data-translate="select_subject">Sélectionner une matière</option>' +
+            userData.matieres.map(matiere => 
+                `<option value="${matiere.id}">${matiere.name}</option>`
+            ).join('');
+    }
     
     // Mettre à jour le sélecteur de cours
-    courseSelect.innerHTML = '<option value="">Tous les cours</option>' +
-        userData.courses.map(course => 
-            `<option value="${course.id}">${course.name}</option>`
-        ).join('');
+    if (courseSelect) {
+        courseSelect.innerHTML = '<option value="" data-translate="all_courses">Tous les cours</option>' +
+            userData.courses.map(course => 
+                `<option value="${course.id}">${course.name}</option>`
+            ).join('');
+    }
 }
 
 // Mise à jour de la liste des résumés
 function updateResumesList() {
     const container = document.getElementById('resumesList');
+    if (!container) return;
     
     if (userData.resumes.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-file-alt"></i>
-                <h3>Aucun résumé disponible</h3>
-                <p>Importez un cours pour générer des résumés</p>
+                <h3 data-translate="no_summaries">Aucun résumé disponible</h3>
+                <p data-translate="import_for_summaries">Importez un cours pour générer des résumés</p>
                 <button onclick="showSection('import')" class="btn-primary">
-                    Importer un cours
+                    <span data-translate="import_course">Importer un cours</span>
                 </button>
             </div>
         `;
@@ -590,16 +603,19 @@ function updateResumesList() {
 
 // Mise à jour de l'affichage des statistiques
 function updateStatsDisplay() {
-    // Progression globale
-    const globalProgress = document.getElementById('globalProgress');
+    const coursCount = document.getElementById('coursCount');
+    const qcmCount = document.getElementById('qcmCount');
+    const flashcardsCount = document.getElementById('flashcardsCount');
+    const scoreMoyen = document.getElementById('scoreMoyen');
+    const averageScore = document.getElementById('averageScore');
     const globalProgressText = document.getElementById('globalProgressText');
-    const progress = Math.min(userData.stats.averageScore, 100);
     
-    globalProgress.style.background = `conic-gradient(#2563eb 0deg, #2563eb ${progress * 3.6}deg, #e5e7eb ${progress * 3.6}deg)`;
-    globalProgressText.textContent = progress + '%';
-    
-    // Score moyen
-    document.getElementById('averageScore').textContent = userData.stats.averageScore + '%';
+    if (coursCount) coursCount.textContent = userData.stats.totalCourses;
+    if (qcmCount) qcmCount.textContent = userData.stats.totalQcm;
+    if (flashcardsCount) flashcardsCount.textContent = userData.stats.totalFlashcards;
+    if (scoreMoyen) scoreMoyen.textContent = userData.stats.averageScore + '%';
+    if (averageScore) averageScore.textContent = userData.stats.averageScore + '%';
+    if (globalProgressText) globalProgressText.textContent = userData.stats.averageScore + '%';
 }
 
 // Fonctions utilitaires
@@ -608,14 +624,16 @@ function generateId() {
 }
 
 function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
     });
 }
 
 function showMessage(message, isSuccess = false) {
+    // Créer un élément de message temporaire
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
     messageDiv.textContent = message;
@@ -623,30 +641,39 @@ function showMessage(message, isSuccess = false) {
         position: fixed;
         top: 20px;
         right: 20px;
-        padding: 1rem 2rem;
+        padding: 1rem 1.5rem;
         border-radius: 8px;
         color: white;
-        font-weight: 600;
+        font-weight: 500;
         z-index: 10000;
         background: ${isSuccess ? '#10b981' : '#ef4444'};
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     `;
     
     document.body.appendChild(messageDiv);
     
     setTimeout(() => {
-        document.body.removeChild(messageDiv);
-    }, 3000);
+        messageDiv.remove();
+    }, 5000);
 }
 
 // Fonctions pour les matières
 function showCreateMatiereModal() {
-    document.getElementById('createMatiereModal').style.display = 'block';
-    document.getElementById('matiereName').focus();
+    const modal = document.getElementById('createMatiereModal');
+    if (modal) {
+        modal.style.display = 'block';
+        const nameInput = document.getElementById('matiereName');
+        if (nameInput) nameInput.focus();
+    }
 }
 
 function closeCreateMatiereModal() {
-    document.getElementById('createMatiereModal').style.display = 'none';
-    document.getElementById('createMatiereForm').reset();
+    const modal = document.getElementById('createMatiereModal');
+    if (modal) {
+        modal.style.display = 'none';
+        const form = document.getElementById('createMatiereForm');
+        if (form) form.reset();
+    }
 }
 
 function createMatiere(name, color, description) {
@@ -678,25 +705,39 @@ function openPdfViewer(courseId) {
         return;
     }
     
-    document.getElementById('pdfViewerTitle').textContent = course.name;
-    document.getElementById('pdfViewerModal').style.display = 'block';
+    const modal = document.getElementById('pdfViewerModal');
+    const title = document.getElementById('pdfViewerTitle');
     
-    // Convertir les données base64 en ArrayBuffer
-    const pdfData = atob(course.pdfData.split(',')[1]);
-    const pdfArray = new Uint8Array(pdfData.length);
-    for (let i = 0; i < pdfData.length; i++) {
-        pdfArray[i] = pdfData.charCodeAt(i);
+    if (modal && title) {
+        title.textContent = course.name;
+        modal.style.display = 'block';
+        
+        // Convertir les données base64 en ArrayBuffer
+        const pdfData = atob(course.pdfData.split(',')[1]);
+        const pdfArray = new Uint8Array(pdfData.length);
+        for (let i = 0; i < pdfData.length; i++) {
+            pdfArray[i] = pdfData.charCodeAt(i);
+        }
+        
+        // Charger le PDF
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.getDocument({data: pdfArray}).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                pageNum = 1;
+                renderPage(pageNum);
+            }).catch(function(error) {
+                console.error('Erreur lors du chargement du PDF:', error);
+                showMessage('Erreur lors du chargement du PDF', false);
+            });
+        } else {
+            showMessage('Visionneur PDF non disponible', false);
+        }
     }
-    
-    // Charger le PDF
-    pdfjsLib.getDocument({data: pdfArray}).promise.then(function(pdf) {
-        pdfDoc = pdf;
-        pageNum = 1;
-        renderPage(pageNum);
-    });
 }
 
 function renderPage(num) {
+    if (!pdfDoc) return;
+    
     pageRendering = true;
     
     pdfDoc.getPage(num).then(function(page) {
@@ -722,7 +763,10 @@ function renderPage(num) {
         });
     });
     
-    document.getElementById('pageInfo').textContent = `Page ${num} sur ${pdfDoc.numPages}`;
+    const pageInfo = document.getElementById('pageInfo');
+    if (pageInfo) {
+        pageInfo.textContent = `Page ${num} sur ${pdfDoc.numPages}`;
+    }
 }
 
 function previousPage() {
@@ -738,7 +782,10 @@ function nextPage() {
 }
 
 function closePdfViewer() {
-    document.getElementById('pdfViewerModal').style.display = 'none';
+    const modal = document.getElementById('pdfViewerModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
     pdfDoc = null;
     pageNum = 1;
 }
@@ -747,14 +794,14 @@ function closePdfViewer() {
 function sendMessage() {
     const input = document.getElementById('chatInput');
     const courseSelect = document.getElementById('courseSelect');
-    const message = input.value.trim();
-    const selectedCourse = courseSelect.value;
+    const message = input ? input.value.trim() : '';
+    const selectedCourse = courseSelect ? courseSelect.value : '';
     
     if (!message) return;
     
     // Ajouter le message utilisateur
     addMessage(message, 'user');
-    input.value = '';
+    if (input) input.value = '';
     
     // Simuler la réponse de l'IA
     setTimeout(() => {
@@ -765,6 +812,8 @@ function sendMessage() {
 
 function addMessage(content, type) {
     const messagesContainer = document.getElementById('chatMessages');
+    if (!messagesContainer) return;
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}`;
     
@@ -795,28 +844,21 @@ function generateAIResponse(message, courseId) {
 
 // Fonctions pour les modals
 function startQcm(courseId) {
-    // Implémenter le démarrage du QCM
     showMessage('Fonctionnalité QCM en cours de développement', false);
 }
 
 function startFlashcards(courseId) {
-    // Implémenter le démarrage des flashcards
     showMessage('Fonctionnalité Flashcards en cours de développement', false);
 }
 
 function closeQcmModal() {
-    document.getElementById('qcmModal').style.display = 'none';
+    const modal = document.getElementById('qcmModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function closeFlashcardsModal() {
-    document.getElementById('flashcardsModal').style.display = 'none';
-}
-
-// Fonction de déconnexion
-function logout() {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('userToken');
-    window.location.href = 'index.html';
+    const modal = document.getElementById('flashcardsModal');
+    if (modal) modal.style.display = 'none';
 }
 
 // Fonctions pour le profil
@@ -827,73 +869,83 @@ function showProfileModal() {
     const email = document.getElementById('email');
     const languageSelect = document.getElementById('languageSelect');
     
-    // Remplir les champs avec les données actuelles
-    const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
-    firstName.value = userProfile.firstName || '';
-    lastName.value = userProfile.lastName || '';
-    email.value = currentUser ? currentUser.email : '';
-    languageSelect.value = currentLanguage;
-    
-    modal.style.display = 'block';
+    if (modal) {
+        // Remplir les champs avec les données actuelles
+        const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        if (firstName) firstName.value = userProfile.firstName || '';
+        if (lastName) lastName.value = userProfile.lastName || '';
+        if (email) email.value = currentUser ? currentUser.email : '';
+        if (languageSelect) languageSelect.value = currentLanguage || 'fr';
+        
+        modal.style.display = 'block';
+    }
 }
 
 function closeProfileModal() {
-    document.getElementById('profileModal').style.display = 'none';
+    const modal = document.getElementById('profileModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function saveProfile() {
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
+    const firstName = document.getElementById('firstName');
+    const lastName = document.getElementById('lastName');
     
-    // Sauvegarder le profil
-    const userProfile = {
-        firstName: firstName,
-        lastName: lastName,
-        language: currentLanguage
-    };
-    localStorage.setItem('userProfile', JSON.stringify(userProfile));
-    
-    // Mettre à jour l'affichage du nom d'utilisateur
-    updateUserName();
-    
-    showMessage('Profil sauvegardé avec succès', true);
-    closeProfileModal();
+    if (firstName && lastName) {
+        const userProfile = {
+            firstName: firstName.value.trim(),
+            lastName: lastName.value.trim(),
+            language: currentLanguage || 'fr'
+        };
+        localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        
+        // Mettre à jour l'affichage du nom d'utilisateur
+        updateUserName();
+        
+        showMessage('Profil sauvegardé avec succès', true);
+        closeProfileModal();
+    }
 }
 
 function showChangePasswordModal() {
-    document.getElementById('changePasswordModal').style.display = 'block';
-    closeProfileModal();
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) {
+        modal.style.display = 'block';
+        closeProfileModal();
+    }
 }
 
 function closeChangePasswordModal() {
-    document.getElementById('changePasswordModal').style.display = 'none';
+    const modal = document.getElementById('changePasswordModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function changePassword() {
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+    const currentPassword = document.getElementById('currentPassword');
+    const newPassword = document.getElementById('newPassword');
+    const confirmNewPassword = document.getElementById('confirmNewPassword');
     
-    if (newPassword !== confirmNewPassword) {
-        showMessage('Les mots de passe ne correspondent pas', false);
-        return;
+    if (currentPassword && newPassword && confirmNewPassword) {
+        if (newPassword.value !== confirmNewPassword.value) {
+            showMessage('Les mots de passe ne correspondent pas', false);
+            return;
+        }
+        
+        if (newPassword.value.length < 6) {
+            showMessage('Le mot de passe doit contenir au moins 6 caractères', false);
+            return;
+        }
+        
+        // Simuler le changement de mot de passe
+        showMessage('Mot de passe mis à jour avec succès', true);
+        closeChangePasswordModal();
+        
+        // Réinitialiser le formulaire
+        const form = document.getElementById('changePasswordForm');
+        if (form) form.reset();
     }
-    
-    if (newPassword.length < 6) {
-        showMessage('Le mot de passe doit contenir au moins 6 caractères', false);
-        return;
-    }
-    
-    // Simuler le changement de mot de passe
-    showMessage('Mot de passe mis à jour avec succès', true);
-    closeChangePasswordModal();
-    
-    // Réinitialiser le formulaire
-    document.getElementById('changePasswordForm').reset();
 }
 
 function selectAvatar() {
-    // Simuler la sélection d'avatar
     showMessage('Fonctionnalité avatar en cours de développement', true);
 }
 
@@ -901,12 +953,14 @@ function updateUserName() {
     const userProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
     const userNameElement = document.getElementById('userName');
     
-    if (userProfile.firstName) {
-        userNameElement.textContent = `Bonjour ${userProfile.firstName}`;
-    } else if (currentUser) {
-        userNameElement.textContent = currentUser.email;
-    } else {
-        userNameElement.textContent = 'Chargement...';
+    if (userNameElement) {
+        if (userProfile.firstName) {
+            userNameElement.textContent = `Bonjour ${userProfile.firstName}`;
+        } else if (currentUser) {
+            userNameElement.textContent = currentUser.email;
+        } else {
+            userNameElement.textContent = 'Chargement...';
+        }
     }
 }
 
@@ -915,7 +969,6 @@ function viewMatiere(matiereId) {
     const matiere = userData.matieres.find(m => m.id === matiereId);
     if (matiere) {
         showMessage(`Affichage de la matière: ${matiere.name}`, true);
-        // Ici on pourrait ouvrir un modal avec les détails de la matière
     }
 }
 
@@ -923,7 +976,6 @@ function editMatiere(matiereId) {
     const matiere = userData.matieres.find(m => m.id === matiereId);
     if (matiere) {
         showMessage(`Édition de la matière: ${matiere.name}`, true);
-        // Ici on pourrait ouvrir un modal d'édition
     }
 }
 
@@ -937,8 +989,9 @@ function deleteMatiere(matiereId) {
     }
 }
 
-// Gestion du formulaire de création de matière
+// Gestion des événements au chargement
 document.addEventListener('DOMContentLoaded', function() {
+    // Gestion du formulaire de création de matière
     const createMatiereForm = document.getElementById('createMatiereForm');
     const matiereColor = document.getElementById('matiereColor');
     const colorPreview = document.getElementById('colorPreview');
@@ -947,9 +1000,11 @@ document.addEventListener('DOMContentLoaded', function() {
         createMatiereForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const name = document.getElementById('matiereName').value.trim();
-            const color = matiereColor.value;
-            const description = document.getElementById('matiereDescription').value.trim();
+            const nameInput = document.getElementById('matiereName');
+            const name = nameInput ? nameInput.value.trim() : '';
+            const color = matiereColor ? matiereColor.value : '#2563eb';
+            const descriptionInput = document.getElementById('matiereDescription');
+            const description = descriptionInput ? descriptionInput.value.trim() : '';
             
             if (!name) {
                 showMessage('Veuillez saisir un nom de matière', false);
@@ -1001,9 +1056,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Gestion du sélecteur de langue
     const languageSelect = document.getElementById('languageSelect');
     if (languageSelect) {
-        languageSelect.value = currentLanguage;
+        languageSelect.value = currentLanguage || 'fr';
         languageSelect.addEventListener('change', function() {
-            changeLanguage(this.value);
+            if (typeof changeLanguage === 'function') {
+                changeLanguage(this.value);
+            }
         });
     }
     
@@ -1011,7 +1068,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadArea = document.getElementById('uploadArea');
     if (uploadArea) {
         uploadArea.addEventListener('click', function() {
-            document.getElementById('fileInput').click();
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) fileInput.click();
         });
         
         uploadArea.addEventListener('dragover', function(e) {

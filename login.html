@@ -12,12 +12,8 @@
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
-                <a href="index.html" class="back-link">
-                    <i class="fas fa-arrow-left"></i>
-                    Retour à l'accueil
-                </a>
-                <h1>Connexion à StudyHub</h1>
-                <p>Accédez à votre espace de révision intelligent</p>
+                <h1>StudyHub</h1>
+                <p>Connectez-vous à votre espace de révision</p>
             </div>
 
             <form id="loginForm" class="auth-form">
@@ -25,37 +21,35 @@
                     <label for="email">Email</label>
                     <input type="email" id="email" placeholder="votre@email.com" required>
                 </div>
-                
                 <div class="form-group">
                     <label for="password">Mot de passe</label>
                     <input type="password" id="password" placeholder="Votre mot de passe" required>
                 </div>
-
                 <button type="submit" class="btn-primary">
                     <i class="fas fa-sign-in-alt"></i>
                     Se connecter
                 </button>
             </form>
 
-            <div class="divider">
+            <div class="auth-divider">
                 <span>ou</span>
             </div>
 
             <button id="googleLogin" class="btn-google">
                 <i class="fab fa-google"></i>
-                Connexion avec Google
+                Continuer avec Google
             </button>
 
             <div class="auth-links">
                 <a href="#" id="forgotPassword">Mot de passe oublié ?</a>
-                <span>Pas encore de compte ? <a href="register.html">Créer un compte</a></span>
+                <a href="register.html">Pas encore de compte ? S'inscrire</a>
             </div>
 
-            <div id="message" class="message"></div>
+            <div id="message" class="message" style="display: none;"></div>
         </div>
     </div>
 
-    <!-- Modal mot de passe oublié -->
+    <!-- Modal Réinitialisation mot de passe -->
     <div id="resetModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -77,6 +71,222 @@
         </div>
     </div>
 
-    <script type="module" src="js/auth.js"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            signInWithPopup, 
+            GoogleAuthProvider,
+            sendPasswordResetEmail 
+        } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqGSBrsJ-7PIpfjAM58gD8h4VcY793rWQ",
+            authDomain: "studyhub-proje.firebaseapp.com",
+            projectId: "studyhub-proje",
+            storageBucket: "studyhub-proje.appspot.com",
+            messagingSenderId: "359347355393",
+            appId: "1:359347355393:web:8c05ede417c10c272d6500",
+            measurementId: "G-DMQJNJW9S0"
+        };
+        
+        // Initialisation Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        
+        // Éléments DOM
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const googleLoginBtn = document.getElementById('googleLogin');
+        const forgotPasswordBtn = document.getElementById('forgotPassword');
+        const messageDiv = document.getElementById('message');
+        const resetModal = document.getElementById('resetModal');
+        const resetForm = document.getElementById('resetForm');
+        const resetEmailInput = document.getElementById('resetEmail');
+        const closeModalBtn = document.getElementById('closeModal');
+        
+        // Fonction pour afficher les messages
+        function showMessage(message, isSuccess = false) {
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${isSuccess ? 'success' : 'error'}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Fonction pour gérer l'état de chargement
+        function setLoading(button, isLoading) {
+            if (isLoading) {
+                button.classList.add('loading');
+                button.disabled = true;
+            } else {
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+        
+        // Connexion par email/mot de passe
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const submitBtn = loginForm.querySelector('button[type="submit"]');
+            
+            if (!email || !password) {
+                showMessage('Veuillez remplir tous les champs', false);
+                return;
+            }
+            
+            setLoading(submitBtn, true);
+            
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Stocker les informations utilisateur
+                localStorage.setItem('currentUser', JSON.stringify({
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName || user.email
+                }));
+                localStorage.setItem('userToken', await user.getIdToken());
+                
+                showMessage('Connexion réussie ! Redirection...', true);
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Erreur de connexion:', error);
+                let errorMessage = 'Erreur de connexion';
+                
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'Aucun compte trouvé avec cet email';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'Mot de passe incorrect';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Email invalide';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Trop de tentatives. Réessayez plus tard';
+                        break;
+                }
+                
+                showMessage(errorMessage, false);
+            } finally {
+                setLoading(submitBtn, false);
+            }
+        });
+        
+        // Connexion avec Google
+        googleLoginBtn.addEventListener('click', async () => {
+            setLoading(googleLoginBtn, true);
+            
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                // Stocker les informations utilisateur
+                localStorage.setItem('currentUser', JSON.stringify({
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName || user.email
+                }));
+                localStorage.setItem('userToken', await user.getIdToken());
+                
+                showMessage('Connexion Google réussie ! Redirection...', true);
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Erreur de connexion Google:', error);
+                showMessage('Erreur lors de la connexion avec Google', false);
+            } finally {
+                setLoading(googleLoginBtn, false);
+            }
+        });
+        
+        // Gestion du modal de réinitialisation
+        forgotPasswordBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetModal.style.display = 'block';
+        });
+        
+        closeModalBtn.addEventListener('click', () => {
+            resetModal.style.display = 'none';
+        });
+        
+        // Fermer le modal en cliquant à l'extérieur
+        window.addEventListener('click', (e) => {
+            if (e.target === resetModal) {
+                resetModal.style.display = 'none';
+            }
+        });
+        
+        // Formulaire de réinitialisation
+        resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = resetEmailInput.value.trim();
+            const submitBtn = resetForm.querySelector('button[type="submit"]');
+            
+            if (!email) {
+                showMessage('Veuillez saisir votre email', false);
+                return;
+            }
+            
+            setLoading(submitBtn, true);
+            
+            try {
+                await sendPasswordResetEmail(auth, email);
+                showMessage('Email de réinitialisation envoyé ! Vérifiez votre boîte mail', true);
+                resetModal.style.display = 'none';
+                resetForm.reset();
+            } catch (error) {
+                console.error('Erreur réinitialisation:', error);
+                showMessage('Erreur lors de l\'envoi de l\'email de réinitialisation', false);
+            } finally {
+                setLoading(submitBtn, false);
+            }
+        });
+        
+        // Validation en temps réel
+        emailInput.addEventListener('input', function() {
+            const email = this.value.trim();
+            if (email && !isValidEmail(email)) {
+                this.classList.add('error');
+            } else {
+                this.classList.remove('error');
+            }
+        });
+        
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            if (password && password.length < 6) {
+                this.classList.add('error');
+            } else {
+                this.classList.remove('error');
+            }
+        });
+        
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+    </script>
 </body>
 </html>

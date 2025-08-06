@@ -199,7 +199,7 @@
                             <i class="fas fa-cloud-upload-alt"></i>
                             <h3 data-translate="drag_drop_pdf">Glissez-déposez votre PDF ici</h3>
                             <p data-translate="or_click_select">ou cliquez pour sélectionner un fichier</p>
-                            <input type="file" id="fileInput" accept=".pdf" hidden>
+                            <input type="file" id="fileInput" accept=".pdf" style="display: none;">
                             <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
                                 <span data-translate="choose_file">Choisir un fichier</span>
                             </button>
@@ -590,6 +590,42 @@
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqGSBrsJ-7PIpfjAM58gD8h4VcY793rWQ",
+            authDomain: "studyhub-proje.firebaseapp.com",
+            projectId: "studyhub-proje",
+            storageBucket: "studyhub-proje.appspot.com",
+            messagingSenderId: "359347355393",
+            appId: "1:359347355393:web:8c05ede417c10c272d6500",
+            measurementId: "G-DMQJNJW9S0"
+        };
+        
+        // Initialisation Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        // Fonction de déconnexion globale
+        window.logout = function() {
+            signOut(auth).then(() => {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userToken');
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error('Erreur de déconnexion:', error);
+                // Forcer la déconnexion même en cas d'erreur
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('userToken');
+                window.location.href = 'login.html';
+            });
+        };
+    </script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="js/translations.js"></script>
     <script src="js/dashboard.js"></script>
