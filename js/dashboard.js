@@ -13,6 +13,13 @@ let userData = {
     }
 };
 
+// Variables pour le visionneur PDF
+let pdfDoc = null;
+let pageNum = 1;
+let pageRendering = false;
+let pageNumPending = null;
+let scale = 1.5;
+
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Dashboard initialisation...');
@@ -21,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
     updateDashboard();
     updateUserName();
+    applyTheme();
 });
 
 // Vérification de l'authentification
@@ -77,6 +85,17 @@ function saveUserData() {
         console.log('Données sauvegardées');
     } catch (error) {
         console.error('Erreur sauvegarde:', error);
+    }
+}
+
+// Application du thème
+function applyTheme() {
+    const theme = localStorage.getItem('theme') || 'light';
+    document.body.className = theme === 'dark' ? 'dark-theme' : '';
+    
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) {
+        themeSelect.value = theme;
     }
 }
 
@@ -200,9 +219,27 @@ function initializeEventListeners() {
     if (languageSelect) {
         languageSelect.value = localStorage.getItem('language') || 'fr';
         languageSelect.addEventListener('change', function() {
-            localStorage.setItem('language', this.value);
-            showMessage('Langue changée avec succès', true);
+            changeLanguage(this.value);
         });
+    }
+    
+    // Gestion du sélecteur de thème
+    const themeSelect = document.getElementById('themeSelect');
+    if (themeSelect) {
+        themeSelect.value = localStorage.getItem('theme') || 'light';
+        themeSelect.addEventListener('change', function() {
+            changeTheme(this.value);
+        });
+    }
+    
+    // Gestion du sélecteur de couleur pour les matières
+    const matiereColor = document.getElementById('matiereColor');
+    const colorPreview = document.getElementById('colorPreview');
+    if (matiereColor && colorPreview) {
+        matiereColor.addEventListener('change', function() {
+            colorPreview.style.backgroundColor = this.value;
+        });
+        colorPreview.style.backgroundColor = matiereColor.value;
     }
 }
 
@@ -291,7 +328,7 @@ function handleFileUpload(file) {
 
 // Validation des fichiers PDF
 function validatePDF(file) {
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 50 * 1024 * 1024; // 50MB
     const allowedTypes = ['application/pdf'];
     
     if (!allowedTypes.includes(file.type)) {
@@ -300,7 +337,7 @@ function validatePDF(file) {
     }
     
     if (file.size > maxSize) {
-        showMessage('Le fichier est trop volumineux (max 10MB)', false);
+        showMessage('Le fichier est trop volumineux (max 50MB)', false);
         return false;
     }
     
@@ -522,6 +559,11 @@ function updateRecentCourses() {
                     <span>${course.qcmCount} QCM</span>
                     <span>${course.flashcardsCount} Flashcards</span>
                 </div>
+            </div>
+            <div class="course-actions">
+                <button onclick="openPdfViewer('${course.id}')" class="btn-secondary" title="Voir le PDF">
+                    <i class="fas fa-eye"></i>
+                </button>
             </div>
         </div>
     `).join('');
@@ -774,6 +816,101 @@ function createMatiere(name, color, description) {
     showMessage(`Matière "${name}" créée avec succès !`, true);
 }
 
+// Fonctions pour le visionneur PDF
+function openPdfViewer(courseId) {
+    console.log('Ouverture visionneur PDF pour cours:', courseId);
+    
+    const course = userData.courses.find(c => c.id === courseId);
+    if (!course || !course.pdfData) {
+        showMessage('Aucun PDF disponible pour ce cours', false);
+        return;
+    }
+    
+    const modal = document.getElementById('pdfViewerModal');
+    const title = document.getElementById('pdfViewerTitle');
+    
+    if (modal && title) {
+        title.textContent = course.name;
+        modal.style.display = 'block';
+        
+        // Convertir les données base64 en ArrayBuffer
+        const pdfData = atob(course.pdfData.split(',')[1]);
+        const pdfArray = new Uint8Array(pdfData.length);
+        for (let i = 0; i < pdfData.length; i++) {
+            pdfArray[i] = pdfData.charCodeAt(i);
+        }
+        
+        // Charger le PDF
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.getDocument({data: pdfArray}).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                pageNum = 1;
+                renderPage(pageNum);
+            }).catch(function(error) {
+                console.error('Erreur lors du chargement du PDF:', error);
+                showMessage('Erreur lors du chargement du PDF', false);
+            });
+        } else {
+            showMessage('Visionneur PDF non disponible', false);
+        }
+    }
+}
+
+function renderPage(num) {
+    if (!pdfDoc) return;
+    
+    pageRendering = true;
+    
+    pdfDoc.getPage(num).then(function(page) {
+        const viewport = page.getViewport({scale: scale});
+        const canvas = document.getElementById('pdfCanvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+        };
+        
+        const renderTask = page.render(renderContext);
+        
+        renderTask.promise.then(function() {
+            pageRendering = false;
+            if (pageNumPending !== null) {
+                renderPage(pageNumPending);
+                pageNumPending = null;
+            }
+        });
+    });
+    
+    const pageInfo = document.getElementById('pageInfo');
+    if (pageInfo) {
+        pageInfo.textContent = `Page ${num} sur ${pdfDoc.numPages}`;
+    }
+}
+
+function previousPage() {
+    if (pageNum <= 1) return;
+    pageNum--;
+    renderPage(pageNum);
+}
+
+function nextPage() {
+    if (pageNum >= pdfDoc.numPages) return;
+    pageNum++;
+    renderPage(pageNum);
+}
+
+function closePdfViewer() {
+    const modal = document.getElementById('pdfViewerModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    pdfDoc = null;
+    pageNum = 1;
+}
+
 // Fonctions pour l'IA Chat
 function sendMessage() {
     const input = document.getElementById('chatInput');
@@ -843,6 +980,7 @@ function showProfileModal() {
     const lastName = document.getElementById('lastName');
     const email = document.getElementById('email');
     const languageSelect = document.getElementById('languageSelect');
+    const themeSelect = document.getElementById('themeSelect');
     
     if (modal) {
         // Remplir les champs avec les données actuelles
@@ -851,6 +989,7 @@ function showProfileModal() {
         if (lastName) lastName.value = userProfile.lastName || '';
         if (email) email.value = currentUser ? currentUser.email : '';
         if (languageSelect) languageSelect.value = localStorage.getItem('language') || 'fr';
+        if (themeSelect) themeSelect.value = localStorage.getItem('theme') || 'light';
         
         modal.style.display = 'block';
     }
@@ -869,7 +1008,8 @@ function saveProfile() {
         const userProfile = {
             firstName: firstName.value.trim(),
             lastName: lastName.value.trim(),
-            language: localStorage.getItem('language') || 'fr'
+            language: localStorage.getItem('language') || 'fr',
+            theme: localStorage.getItem('theme') || 'light'
         };
         localStorage.setItem('userProfile', JSON.stringify(userProfile));
         
@@ -910,14 +1050,29 @@ function changePassword() {
             return;
         }
         
-        // Simuler le changement de mot de passe
-        showMessage('Mot de passe mis à jour avec succès', true);
-        closeChangePasswordModal();
-        
-        // Réinitialiser le formulaire
-        const form = document.getElementById('changePasswordForm');
-        if (form) form.reset();
+        // Changer le mot de passe avec Firebase
+        if (typeof changePasswordFirebase === 'function') {
+            changePasswordFirebase(currentPassword.value, newPassword.value)
+                .then(() => {
+                    showMessage('Mot de passe mis à jour avec succès', true);
+                    closeChangePasswordModal();
+                    
+                    // Réinitialiser le formulaire
+                    const form = document.getElementById('changePasswordForm');
+                    if (form) form.reset();
+                })
+                .catch((error) => {
+                    console.error('Erreur changement mot de passe:', error);
+                    showMessage('Erreur lors du changement de mot de passe', false);
+                });
+        } else {
+            showMessage('Fonctionnalité non disponible', false);
+        }
     }
+}
+
+function selectAvatar() {
+    showMessage('Fonctionnalité avatar en cours de développement', true);
 }
 
 function updateUserName() {
@@ -960,6 +1115,18 @@ function deleteMatiere(matiereId) {
     }
 }
 
+// Fonctions pour le thème et la langue
+function changeTheme(theme) {
+    localStorage.setItem('theme', theme);
+    applyTheme();
+    showMessage('Thème changé avec succès', true);
+}
+
+function changeLanguage(lang) {
+    localStorage.setItem('language', lang);
+    showMessage('Langue changée avec succès', true);
+}
+
 // Export des fonctions pour utilisation globale
 window.showSection = showSection;
 window.logout = logout;
@@ -967,6 +1134,10 @@ window.startQcm = startQcm;
 window.startFlashcards = startFlashcards;
 window.showCreateMatiereModal = showCreateMatiereModal;
 window.closeCreateMatiereModal = closeCreateMatiereModal;
+window.openPdfViewer = openPdfViewer;
+window.closePdfViewer = closePdfViewer;
+window.previousPage = previousPage;
+window.nextPage = nextPage;
 window.sendMessage = sendMessage;
 window.viewMatiere = viewMatiere;
 window.editMatiere = editMatiere;
@@ -975,3 +1146,6 @@ window.showProfileModal = showProfileModal;
 window.closeProfileModal = closeProfileModal;
 window.showChangePasswordModal = showChangePasswordModal;
 window.closeChangePasswordModal = closeChangePasswordModal;
+window.selectAvatar = selectAvatar;
+window.changeTheme = changeTheme;
+window.changeLanguage = changeLanguage;

@@ -353,6 +353,33 @@
                 </div>
 
                 <div class="profile-section">
+                    <h4>Avatar</h4>
+                    <div class="avatar-section">
+                        <div class="avatar-preview" id="avatarPreview">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="avatar-options">
+                            <button type="button" class="btn-secondary" onclick="selectAvatar()">
+                                <i class="fas fa-image"></i>
+                                Sélectionner un avatar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h4>Apparence</h4>
+                    <div class="form-group">
+                        <label for="themeSelect">Thème</label>
+                        <select id="themeSelect">
+                            <option value="light">Mode clair</option>
+                            <option value="dark">Mode sombre</option>
+                            <option value="auto">Automatique</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="profile-section">
                     <h4>Langue</h4>
                     <div class="form-group">
                         <label for="languageSelect">Sélectionner la langue</label>
@@ -447,10 +474,38 @@
         </div>
     </div>
 
+    <!-- Modal Visionneur PDF -->
+    <div id="pdfViewerModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 id="pdfViewerTitle">Visionneur PDF</h3>
+                <button class="close-btn" onclick="closePdfViewer()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="pdf-viewer-content">
+                <div class="pdf-controls">
+                    <button onclick="previousPage()" class="btn-secondary">
+                        <i class="fas fa-chevron-left"></i>
+                        Précédent
+                    </button>
+                    <span id="pageInfo">Page 1 sur 1</span>
+                    <button onclick="nextPage()" class="btn-secondary">
+                        Suivant
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="pdf-container">
+                    <canvas id="pdfCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getAuth, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         
         // Configuration Firebase
         const firebaseConfig = {
@@ -481,7 +536,16 @@
                 window.location.href = 'login.html';
             });
         };
+
+        // Fonction de changement de mot de passe
+        window.changePasswordFirebase = function(currentPassword, newPassword) {
+            return updatePassword(auth.currentUser, newPassword);
+        };
     </script>
+    
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
     
     <script src="js/dashboard.js"></script>
 </body>
