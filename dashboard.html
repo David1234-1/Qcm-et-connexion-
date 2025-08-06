@@ -20,6 +20,10 @@
                     <i class="fas fa-home"></i>
                     Dashboard
                 </a>
+                <a href="#matieres" class="nav-link">
+                    <i class="fas fa-book"></i>
+                    Matières
+                </a>
                 <a href="#import" class="nav-link">
                     <i class="fas fa-upload"></i>
                     Importer
@@ -35,6 +39,10 @@
                 <a href="#resumes" class="nav-link">
                     <i class="fas fa-file-alt"></i>
                     Résumés
+                </a>
+                <a href="#ia-chat" class="nav-link">
+                    <i class="fas fa-robot"></i>
+                    IA Chat
                 </a>
                 <a href="#statistiques" class="nav-link">
                     <i class="fas fa-chart-line"></i>
@@ -107,6 +115,10 @@
                 <div class="quick-actions">
                     <h2>Actions rapides</h2>
                     <div class="actions-grid">
+                        <button class="action-btn" onclick="showSection('matieres')">
+                            <i class="fas fa-book"></i>
+                            <span>Gérer les matières</span>
+                        </button>
                         <button class="action-btn" onclick="showSection('import')">
                             <i class="fas fa-upload"></i>
                             <span>Importer un cours</span>
@@ -115,13 +127,9 @@
                             <i class="fas fa-play"></i>
                             <span>Commencer un QCM</span>
                         </button>
-                        <button class="action-btn" onclick="showSection('flashcards')">
-                            <i class="fas fa-layer-group"></i>
-                            <span>Réviser les flashcards</span>
-                        </button>
-                        <button class="action-btn" onclick="showSection('resumes')">
-                            <i class="fas fa-file-alt"></i>
-                            <span>Voir les résumés</span>
+                        <button class="action-btn" onclick="showSection('ia-chat')">
+                            <i class="fas fa-robot"></i>
+                            <span>Poser une question à l'IA</span>
                         </button>
                     </div>
                 </div>
@@ -136,6 +144,36 @@
                             <p>Commencez par importer votre premier cours</p>
                             <button onclick="showSection('import')" class="btn-primary">
                                 Importer un cours
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gestion des matières -->
+        <section id="matieres" class="dashboard-section">
+            <div class="container">
+                <div class="section-header">
+                    <h1>Gestion des matières</h1>
+                    <p>Organisez vos cours par matières et personnalisez votre espace</p>
+                </div>
+
+                <div class="matieres-container">
+                    <div class="matieres-header">
+                        <button class="btn-primary" onclick="showCreateMatiereModal()">
+                            <i class="fas fa-plus"></i>
+                            Créer une matière
+                        </button>
+                    </div>
+
+                    <div class="matieres-grid" id="matieresGrid">
+                        <div class="empty-state">
+                            <i class="fas fa-book"></i>
+                            <h3>Aucune matière créée</h3>
+                            <p>Créez votre première matière pour organiser vos cours</p>
+                            <button onclick="showCreateMatiereModal()" class="btn-primary">
+                                Créer une matière
                             </button>
                         </div>
                     </div>
@@ -167,6 +205,12 @@
                     <div class="import-options">
                         <h3>Options de génération</h3>
                         <div class="options-grid">
+                            <div class="option-group">
+                                <label for="matiereSelect">Matière</label>
+                                <select id="matiereSelect">
+                                    <option value="">Sélectionner une matière</option>
+                                </select>
+                            </div>
                             <div class="option-group">
                                 <label for="qcmCount">Nombre de QCM</label>
                                 <select id="qcmCount">
@@ -275,6 +319,39 @@
             </div>
         </section>
 
+        <!-- IA Chat -->
+        <section id="ia-chat" class="dashboard-section">
+            <div class="container">
+                <div class="section-header">
+                    <h1>Assistant IA</h1>
+                    <p>Posez vos questions à l'IA sur vos cours importés</p>
+                </div>
+
+                <div class="ia-chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message ai">
+                            <div class="message-content">
+                                <i class="fas fa-robot"></i>
+                                <p>Bonjour ! Je suis votre assistant IA. Posez-moi des questions sur vos cours importés et je vous aiderai à mieux comprendre les concepts.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input">
+                        <div class="input-group">
+                            <select id="courseSelect" class="course-select">
+                                <option value="">Tous les cours</option>
+                            </select>
+                            <input type="text" id="chatInput" placeholder="Posez votre question..." />
+                            <button onclick="sendMessage()" class="btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Statistiques -->
         <section id="statistiques" class="dashboard-section">
             <div class="container">
@@ -315,6 +392,67 @@
         </section>
     </main>
 
+    <!-- Modal Créer Matière -->
+    <div id="createMatiereModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Créer une nouvelle matière</h3>
+                <button class="close-btn" onclick="closeCreateMatiereModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="createMatiereForm">
+                <div class="form-group">
+                    <label for="matiereName">Nom de la matière</label>
+                    <input type="text" id="matiereName" placeholder="Ex: Cardiologie" required>
+                </div>
+                <div class="form-group">
+                    <label for="matiereColor">Couleur</label>
+                    <div class="color-picker">
+                        <input type="color" id="matiereColor" value="#2563eb">
+                        <span class="color-preview" id="colorPreview"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="matiereDescription">Description (optionnel)</label>
+                    <textarea id="matiereDescription" placeholder="Description de la matière..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Créer la matière
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Visionneur PDF -->
+    <div id="pdfViewerModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 id="pdfViewerTitle">Visionneur PDF</h3>
+                <button class="close-btn" onclick="closePdfViewer()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="pdf-viewer-content">
+                <div class="pdf-controls">
+                    <button onclick="previousPage()" class="btn-secondary">
+                        <i class="fas fa-chevron-left"></i>
+                        Précédent
+                    </button>
+                    <span id="pageInfo">Page 1 sur 1</span>
+                    <button onclick="nextPage()" class="btn-secondary">
+                        Suivant
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="pdf-container">
+                    <canvas id="pdfCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal QCM -->
     <div id="qcmModal" class="modal">
         <div class="modal-content large">
@@ -345,6 +483,7 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="js/dashboard.js"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@ let userData = {
     qcm: [],
     flashcards: [],
     resumes: [],
+    matieres: [],
     stats: {
         totalCourses: 0,
         totalQcm: 0,
@@ -12,6 +13,13 @@ let userData = {
         averageScore: 0
     }
 };
+
+// Variables pour le visionneur PDF
+let pdfDoc = null;
+let pageNum = 1;
+let pageRendering = false;
+let pageNumPending = null;
+let scale = 1.5;
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
@@ -124,31 +132,39 @@ function handleFileUpload(file) {
     
     progressContainer.style.display = 'block';
     
-    // Simuler la progression
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += Math.random() * 15;
-        if (progress > 100) progress = 100;
+    // Lire le fichier PDF
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const pdfData = e.target.result;
         
-        progressFill.style.width = progress + '%';
-        
-        if (progress < 30) {
-            progressText.textContent = 'Analyse du document...';
-        } else if (progress < 60) {
-            progressText.textContent = 'Extraction du contenu...';
-        } else if (progress < 90) {
-            progressText.textContent = 'Génération des QCM et flashcards...';
-        } else {
-            progressText.textContent = 'Finalisation...';
-        }
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-                completeFileUpload(fileName, fileSize);
-            }, 500);
-        }
-    }, 200);
+        // Simuler la progression
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 100) progress = 100;
+            
+            progressFill.style.width = progress + '%';
+            
+            if (progress < 30) {
+                progressText.textContent = 'Analyse du document...';
+            } else if (progress < 60) {
+                progressText.textContent = 'Extraction du contenu...';
+            } else if (progress < 90) {
+                progressText.textContent = 'Génération des QCM et flashcards...';
+            } else {
+                progressText.textContent = 'Finalisation...';
+            }
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    completeFileUpload(fileName, fileSize, pdfData);
+                }, 500);
+            }
+        }, 200);
+    };
+    
+    reader.readAsDataURL(file);
 }
 
 // Validation des fichiers PDF
@@ -170,11 +186,12 @@ function validatePDF(file) {
 }
 
 // Finalisation de l'upload
-function completeFileUpload(fileName, fileSize) {
+function completeFileUpload(fileName, fileSize, pdfData) {
     const progressContainer = document.getElementById('importProgress');
     progressContainer.style.display = 'none';
     
     // Récupérer les options
+    const matiereId = document.getElementById('matiereSelect').value;
     const qcmCount = parseInt(document.getElementById('qcmCount').value);
     const difficulty = document.getElementById('difficulty').value;
     const flashcardsCount = parseInt(document.getElementById('flashcardsCount').value);
@@ -188,13 +205,22 @@ function completeFileUpload(fileName, fileSize) {
         date: new Date().toISOString(),
         qcmCount: qcmCount,
         flashcardsCount: flashcardsCount,
-        difficulty: difficulty
+        difficulty: difficulty,
+        matiereId: matiereId,
+        pdfData: pdfData
     };
     
     // Générer les QCM et flashcards
     const qcm = generateSampleQCM(course.name, qcmCount, difficulty);
     const flashcards = generateSampleFlashcards(course.name, flashcardsCount);
     const resume = generateSampleResume(course.name);
+    
+    // Associer à la matière si sélectionnée
+    if (matiereId) {
+        qcm.forEach(q => q.matiereId = matiereId);
+        flashcards.forEach(f => f.matiereId = matiereId);
+        resume.matiereId = matiereId;
+    }
     
     // Ajouter aux données utilisateur
     userData.courses.push(course);
@@ -354,10 +380,12 @@ function updateDashboard() {
     updateRecentCourses();
     
     // Mettre à jour les listes
+    updateMatieresList();
     updateQcmList();
     updateFlashcardsList();
     updateResumesList();
     updateStatsDisplay();
+    updateCourseSelects();
 }
 
 // Mise à jour des cours récents
@@ -391,6 +419,11 @@ function updateRecentCourses() {
                     <span>${course.qcmCount} QCM</span>
                     <span>${course.flashcardsCount} Flashcards</span>
                 </div>
+            </div>
+            <div class="course-actions">
+                <button onclick="openPdfViewer('${course.id}')" class="btn-secondary" title="Voir le PDF">
+                    <i class="fas fa-eye"></i>
+                </button>
             </div>
         </div>
     `).join('');
@@ -482,6 +515,74 @@ function updateFlashcardsList() {
     `).join('');
 }
 
+// Mise à jour de la liste des matières
+function updateMatieresList() {
+    const container = document.getElementById('matieresGrid');
+    
+    if (userData.matieres.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-book"></i>
+                <h3>Aucune matière créée</h3>
+                <p>Créez votre première matière pour organiser vos cours</p>
+                <button onclick="showCreateMatiereModal()" class="btn-primary">
+                    Créer une matière
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = userData.matieres.map(matiere => {
+        const courseCount = userData.courses.filter(c => c.matiereId === matiere.id).length;
+        const qcmCount = userData.qcm.filter(q => q.matiereId === matiere.id).length;
+        const flashcardCount = userData.flashcards.filter(f => f.matiereId === matiere.id).length;
+        
+        return `
+            <div class="matiere-card" style="border-left-color: ${matiere.color}">
+                <div class="matiere-header">
+                    <h3>${matiere.name}</h3>
+                    <div class="matiere-actions">
+                        <button class="btn-view" onclick="viewMatiere('${matiere.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-edit" onclick="editMatiere('${matiere.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-delete" onclick="deleteMatiere('${matiere.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                ${matiere.description ? `<p style="color: #64748b; margin-bottom: 1rem;">${matiere.description}</p>` : ''}
+                <div class="matiere-stats">
+                    <span class="matiere-stat">${courseCount} cours</span>
+                    <span class="matiere-stat">${qcmCount} QCM</span>
+                    <span class="matiere-stat">${flashcardCount} flashcards</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Mise à jour des sélecteurs de cours
+function updateCourseSelects() {
+    const matiereSelect = document.getElementById('matiereSelect');
+    const courseSelect = document.getElementById('courseSelect');
+    
+    // Mettre à jour le sélecteur de matières
+    matiereSelect.innerHTML = '<option value="">Sélectionner une matière</option>' +
+        userData.matieres.map(matiere => 
+            `<option value="${matiere.id}">${matiere.name}</option>`
+        ).join('');
+    
+    // Mettre à jour le sélecteur de cours
+    courseSelect.innerHTML = '<option value="">Tous les cours</option>' +
+        userData.courses.map(course => 
+            `<option value="${course.id}">${course.name}</option>`
+        ).join('');
+}
+
 // Mise à jour de la liste des résumés
 function updateResumesList() {
     const container = document.getElementById('resumesList');
@@ -566,7 +667,162 @@ function showMessage(message, isSuccess = false) {
     }, 3000);
 }
 
-// Fonctions pour les modals (à implémenter)
+// Fonctions pour les matières
+function showCreateMatiereModal() {
+    document.getElementById('createMatiereModal').style.display = 'block';
+    document.getElementById('matiereName').focus();
+}
+
+function closeCreateMatiereModal() {
+    document.getElementById('createMatiereModal').style.display = 'none';
+    document.getElementById('createMatiereForm').reset();
+}
+
+function createMatiere(name, color, description) {
+    const matiere = {
+        id: generateId(),
+        name: name,
+        color: color,
+        description: description,
+        createdAt: new Date().toISOString(),
+        courses: [],
+        qcm: [],
+        flashcards: [],
+        resumes: []
+    };
+    
+    userData.matieres.push(matiere);
+    saveUserData();
+    updateMatieresList();
+    updateCourseSelects();
+    
+    showMessage(`Matière "${name}" créée avec succès !`, true);
+}
+
+// Fonctions pour le visionneur PDF
+function openPdfViewer(courseId) {
+    const course = userData.courses.find(c => c.id === courseId);
+    if (!course || !course.pdfData) {
+        showMessage('Aucun PDF disponible pour ce cours', false);
+        return;
+    }
+    
+    document.getElementById('pdfViewerTitle').textContent = course.name;
+    document.getElementById('pdfViewerModal').style.display = 'block';
+    
+    // Convertir les données base64 en ArrayBuffer
+    const pdfData = atob(course.pdfData.split(',')[1]);
+    const pdfArray = new Uint8Array(pdfData.length);
+    for (let i = 0; i < pdfData.length; i++) {
+        pdfArray[i] = pdfData.charCodeAt(i);
+    }
+    
+    // Charger le PDF
+    pdfjsLib.getDocument({data: pdfArray}).promise.then(function(pdf) {
+        pdfDoc = pdf;
+        pageNum = 1;
+        renderPage(pageNum);
+    });
+}
+
+function renderPage(num) {
+    pageRendering = true;
+    
+    pdfDoc.getPage(num).then(function(page) {
+        const viewport = page.getViewport({scale: scale});
+        const canvas = document.getElementById('pdfCanvas');
+        const context = canvas.getContext('2d');
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+        
+        const renderContext = {
+            canvasContext: context,
+            viewport: viewport
+        };
+        
+        const renderTask = page.render(renderContext);
+        
+        renderTask.promise.then(function() {
+            pageRendering = false;
+            if (pageNumPending !== null) {
+                renderPage(pageNumPending);
+                pageNumPending = null;
+            }
+        });
+    });
+    
+    document.getElementById('pageInfo').textContent = `Page ${num} sur ${pdfDoc.numPages}`;
+}
+
+function previousPage() {
+    if (pageNum <= 1) return;
+    pageNum--;
+    renderPage(pageNum);
+}
+
+function nextPage() {
+    if (pageNum >= pdfDoc.numPages) return;
+    pageNum++;
+    renderPage(pageNum);
+}
+
+function closePdfViewer() {
+    document.getElementById('pdfViewerModal').style.display = 'none';
+    pdfDoc = null;
+    pageNum = 1;
+}
+
+// Fonctions pour l'IA Chat
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const courseSelect = document.getElementById('courseSelect');
+    const message = input.value.trim();
+    const selectedCourse = courseSelect.value;
+    
+    if (!message) return;
+    
+    // Ajouter le message utilisateur
+    addMessage(message, 'user');
+    input.value = '';
+    
+    // Simuler la réponse de l'IA
+    setTimeout(() => {
+        const aiResponse = generateAIResponse(message, selectedCourse);
+        addMessage(aiResponse, 'ai');
+    }, 1000);
+}
+
+function addMessage(content, type) {
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    
+    const icon = type === 'ai' ? '<i class="fas fa-robot"></i>' : '';
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            ${icon}
+            <p>${content}</p>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function generateAIResponse(message, courseId) {
+    const responses = [
+        "Excellente question ! Basé sur vos cours, voici ce que je peux vous dire...",
+        "D'après le contenu de vos documents, la réponse est...",
+        "C'est un concept important. Laissez-moi vous expliquer...",
+        "Voici une explication détaillée basée sur vos cours...",
+        "Cette question fait référence à un point clé de vos études..."
+    ];
+    
+    return responses[Math.floor(Math.random() * responses.length)] + " " + 
+           "Cette fonctionnalité utilise l'IA pour analyser vos cours importés et vous fournir des réponses personnalisées.";
+}
+
+// Fonctions pour les modals
 function startQcm(courseId) {
     // Implémenter le démarrage du QCM
     showMessage('Fonctionnalité QCM en cours de développement', false);
@@ -592,6 +848,77 @@ function logout() {
     window.location.href = 'index.html';
 }
 
+// Fonctions pour les matières
+function viewMatiere(matiereId) {
+    const matiere = userData.matieres.find(m => m.id === matiereId);
+    if (matiere) {
+        showMessage(`Affichage de la matière: ${matiere.name}`, true);
+        // Ici on pourrait ouvrir un modal avec les détails de la matière
+    }
+}
+
+function editMatiere(matiereId) {
+    const matiere = userData.matieres.find(m => m.id === matiereId);
+    if (matiere) {
+        showMessage(`Édition de la matière: ${matiere.name}`, true);
+        // Ici on pourrait ouvrir un modal d'édition
+    }
+}
+
+function deleteMatiere(matiereId) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette matière ?')) {
+        userData.matieres = userData.matieres.filter(m => m.id !== matiereId);
+        saveUserData();
+        updateMatieresList();
+        updateCourseSelects();
+        showMessage('Matière supprimée avec succès', true);
+    }
+}
+
+// Gestion du formulaire de création de matière
+document.addEventListener('DOMContentLoaded', function() {
+    const createMatiereForm = document.getElementById('createMatiereForm');
+    const matiereColor = document.getElementById('matiereColor');
+    const colorPreview = document.getElementById('colorPreview');
+    
+    if (createMatiereForm) {
+        createMatiereForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('matiereName').value.trim();
+            const color = matiereColor.value;
+            const description = document.getElementById('matiereDescription').value.trim();
+            
+            if (!name) {
+                showMessage('Veuillez saisir un nom de matière', false);
+                return;
+            }
+            
+            createMatiere(name, color, description);
+            closeCreateMatiereModal();
+        });
+    }
+    
+    if (matiereColor && colorPreview) {
+        matiereColor.addEventListener('change', function() {
+            colorPreview.style.backgroundColor = this.value;
+        });
+        
+        // Initialiser la couleur
+        colorPreview.style.backgroundColor = matiereColor.value;
+    }
+    
+    // Gestion de l'entrée dans le chat
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    }
+});
+
 // Export des fonctions pour utilisation globale
 window.showSection = showSection;
 window.logout = logout;
@@ -599,3 +926,13 @@ window.startQcm = startQcm;
 window.startFlashcards = startFlashcards;
 window.closeQcmModal = closeQcmModal;
 window.closeFlashcardsModal = closeFlashcardsModal;
+window.showCreateMatiereModal = showCreateMatiereModal;
+window.closeCreateMatiereModal = closeCreateMatiereModal;
+window.openPdfViewer = openPdfViewer;
+window.closePdfViewer = closePdfViewer;
+window.previousPage = previousPage;
+window.nextPage = nextPage;
+window.sendMessage = sendMessage;
+window.viewMatiere = viewMatiere;
+window.editMatiere = editMatiere;
+window.deleteMatiere = deleteMatiere;
