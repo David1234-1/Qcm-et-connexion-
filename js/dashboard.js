@@ -110,50 +110,63 @@ function showSection(sectionId) {
 
 // Gestion de l'upload de fichiers
 function handleFileUpload(file) {
-    if (!validatePDF(file)) {
+    const isPDF = file.type === 'application/pdf';
+    const isImage = file.type.startsWith('image/');
+    if (!isPDF && !isImage) {
+        showMessage('Veuillez sélectionner un fichier PDF ou une image', false);
         return;
     }
-
+    if (file.size > 10 * 1024 * 1024) {
+        showMessage('Le fichier est trop volumineux (max 10MB)', false);
+        return;
+    }
     const fileName = file.name;
     const fileSize = (file.size / 1024 / 1024).toFixed(2);
-
-    // Afficher la progression
     const progressContainer = document.getElementById('importProgress');
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');
-
     progressContainer.style.display = 'block';
     progressFill.style.width = '0%';
-    progressText.textContent = 'Lecture du fichier PDF...';
-
-    // Lire le PDF avec PDF.js
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        try {
-            const typedarray = new Uint8Array(e.target.result);
-            progressFill.style.width = '20%';
-            progressText.textContent = 'Chargement du document...';
-
-            const pdf = await window['pdfjsLib'].getDocument({data: typedarray}).promise;
-            let textContent = '';
-            for (let i = 1; i <= pdf.numPages; i++) {
-                progressFill.style.width = (20 + (i/pdf.numPages)*60) + '%';
-                progressText.textContent = `Extraction du texte (page ${i}/${pdf.numPages})...`;
-                const page = await pdf.getPage(i);
-                const txt = await page.getTextContent();
-                textContent += txt.items.map(item => item.str).join(' ') + '\n';
+    if (isPDF) {
+        progressText.textContent = 'Lecture du fichier PDF...';
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const typedarray = new Uint8Array(e.target.result);
+                progressFill.style.width = '20%';
+                progressText.textContent = 'Chargement du document...';
+                const pdf = await window['pdfjsLib'].getDocument({data: typedarray}).promise;
+                let textContent = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    progressFill.style.width = (20 + (i/pdf.numPages)*60) + '%';
+                    progressText.textContent = `Extraction du texte (page ${i}/${pdf.numPages})...`;
+                    const page = await pdf.getPage(i);
+                    const txt = await page.getTextContent();
+                    textContent += txt.items.map(item => item.str).join(' ') + '\n';
+                }
+                progressFill.style.width = '90%';
+                progressText.textContent = 'Finalisation de l\'import...';
+                setTimeout(() => {
+                    completeFileUpload(fileName, fileSize, textContent);
+                }, 500);
+            } catch (err) {
+                progressContainer.style.display = 'none';
+                showMessage('Erreur lors de la lecture du PDF : ' + err.message, false);
             }
+        };
+        reader.readAsArrayBuffer(file);
+    } else if (isImage) {
+        progressText.textContent = 'Lecture de l\'image...';
+        const reader = new FileReader();
+        reader.onload = function(e) {
             progressFill.style.width = '90%';
             progressText.textContent = 'Finalisation de l\'import...';
             setTimeout(() => {
-                completeFileUpload(fileName, fileSize, textContent);
+                completeFileUpload(fileName, fileSize, '', e.target.result);
             }, 500);
-        } catch (err) {
-            progressContainer.style.display = 'none';
-            showMessage('Erreur lors de la lecture du PDF : ' + err.message, false);
-        }
-    };
-    reader.readAsArrayBuffer(file);
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
 // Validation des fichiers PDF
@@ -174,40 +187,30 @@ function validatePDF(file) {
     return true;
 }
 
-// Finalisation de l'upload avec analyse
-function completeFileUpload(fileName, fileSize, fileContent) {
+// Modifie completeFileUpload pour accepter un paramètre imageData
+function completeFileUpload(fileName, fileSize, fileContent, imageData) {
     const progressContainer = document.getElementById('importProgress');
     progressContainer.style.display = 'none';
-    
-    // Récupérer les options
     const qcmCount = parseInt(document.getElementById('qcmCount').value);
     const difficulty = document.getElementById('difficulty').value;
     const flashcardsCount = parseInt(document.getElementById('flashcardsCount').value);
-    
-    // Créer un nouveau cours
     const course = {
         id: generateId(),
-        name: fileName.replace('.pdf', ''),
+        name: fileName.replace(/\.(pdf|jpg|jpeg|png|gif)$/i, ''),
         fileName: fileName,
         fileSize: fileSize,
         date: new Date().toISOString(),
         qcmCount: qcmCount,
         flashcardsCount: flashcardsCount,
         difficulty: difficulty,
-        analyzed: false, // Nouveau champ pour indiquer si le cours a été analysé
-        pdfText: fileContent // On stocke le texte extrait du PDF
+        analyzed: false,
+        pdfText: fileContent || '',
+        imageData: imageData || ''
     };
-    
-    // Ajouter aux données utilisateur
     userData.courses.push(course);
     saveUserData();
-    
-    // Mettre à jour l'affichage
     updateDashboard();
-    
     showMessage(`Cours "${course.name}" importé avec succès ! Cliquez sur "Analyser" pour générer les QCM et flashcards.`, true);
-    
-    // Rediriger vers le dashboard
     setTimeout(() => {
         showSection('dashboard');
     }, 2000);
@@ -459,7 +462,7 @@ function updateRecentCourses() {
     container.innerHTML = recentCourses.map(course => `
         <div class="course-card">
             <div class="course-icon">
-                <i class="fas fa-file-pdf"></i>
+                ${course.imageData ? `<img src='${course.imageData}' alt='Aperçu' style='width:32px;height:32px;object-fit:cover;border-radius:6px;'>` : `<i class='fas fa-file-pdf'></i>`}
             </div>
             <div class="course-info">
                 <h3>${course.name}</h3>
@@ -690,12 +693,128 @@ function toggleUserMenu() {
 function changeLanguage(language) {
     // Sauvegarder la préférence de langue
     localStorage.setItem('userLanguage', language);
-    
-    // Simuler le changement de langue
+    // Traductions principales
+    const translations = {
+        fr: {
+            dashboard: 'Dashboard',
+            import: 'Importer un cours',
+            importDesc: "Importez vos PDF et laissez l'IA générer automatiquement des QCM et flashcards",
+            qcm: 'QCM',
+            qcmDesc: "Entraînez-vous avec les QCM générés par l'IA",
+            flashcards: 'Flashcards',
+            flashcardsDesc: 'Révisez efficacement avec les flashcards générées',
+            resumes: 'Résumés',
+            resumesDesc: 'Consultez les résumés générés par l\'IA',
+            stats: 'Statistiques',
+            statsDesc: 'Suivez vos progrès et vos performances',
+            settings: 'Paramètres',
+            settingsDesc: 'Personnalisez votre expérience StudyHub',
+            profile: 'Profil',
+            profileDesc: 'Gérez vos informations personnelles',
+        },
+        en: {
+            dashboard: 'Dashboard',
+            import: 'Import Course',
+            importDesc: 'Import your PDFs and let AI generate QCM and flashcards',
+            qcm: 'MCQ',
+            qcmDesc: 'Practice with AI-generated MCQs',
+            flashcards: 'Flashcards',
+            flashcardsDesc: 'Efficiently review with generated flashcards',
+            resumes: 'Summaries',
+            resumesDesc: 'View AI-generated summaries',
+            stats: 'Statistics',
+            statsDesc: 'Track your progress and performance',
+            settings: 'Settings',
+            settingsDesc: 'Customize your StudyHub experience',
+            profile: 'Profile',
+            profileDesc: 'Manage your personal information',
+        },
+        es: {
+            dashboard: 'Panel',
+            import: 'Importar curso',
+            importDesc: 'Importa tus PDF y deja que la IA genere QCM y flashcards',
+            qcm: 'QCM',
+            qcmDesc: 'Entrénate con QCM generados por IA',
+            flashcards: 'Flashcards',
+            flashcardsDesc: 'Revisa eficazmente con flashcards generadas',
+            resumes: 'Resúmenes',
+            resumesDesc: 'Consulta los resúmenes generados por IA',
+            stats: 'Estadísticas',
+            statsDesc: 'Sigue tu progreso y rendimiento',
+            settings: 'Ajustes',
+            settingsDesc: 'Personaliza tu experiencia StudyHub',
+            profile: 'Perfil',
+            profileDesc: 'Gestiona tu información personal',
+        },
+        de: {
+            dashboard: 'Dashboard',
+            import: 'Kurs importieren',
+            importDesc: 'Importieren Sie Ihre PDFs und lassen Sie die KI QCM und Karteikarten generieren',
+            qcm: 'QCM',
+            qcmDesc: 'Üben Sie mit KI-generierten QCMs',
+            flashcards: 'Karteikarten',
+            flashcardsDesc: 'Effizient mit generierten Karteikarten lernen',
+            resumes: 'Zusammenfassungen',
+            resumesDesc: 'Von der KI generierte Zusammenfassungen ansehen',
+            stats: 'Statistiken',
+            statsDesc: 'Verfolgen Sie Ihren Fortschritt und Ihre Leistung',
+            settings: 'Einstellungen',
+            settingsDesc: 'Passen Sie Ihre StudyHub-Erfahrung an',
+            profile: 'Profil',
+            profileDesc: 'Verwalten Sie Ihre persönlichen Informationen',
+        }
+    };
+    const t = translations[language] || translations.fr;
+    // Titres principaux
+    const sectionTitles = [
+        {id: 'dashboard', title: t.dashboard},
+        {id: 'import', title: t.import},
+        {id: 'qcm', title: t.qcm},
+        {id: 'flashcards', title: t.flashcards},
+        {id: 'resumes', title: t.resumes},
+        {id: 'statistiques', title: t.stats},
+        {id: 'parametres', title: t.settings},
+        {id: 'profil', title: t.profile},
+    ];
+    sectionTitles.forEach(s => {
+        const el = document.querySelector(`#${s.id} .section-header h1`);
+        if (el) el.textContent = s.title;
+    });
+    // Sous-titres/descriptions
+    const descs = [
+        {id: 'dashboard', desc: ''},
+        {id: 'import', desc: t.importDesc},
+        {id: 'qcm', desc: t.qcmDesc},
+        {id: 'flashcards', desc: t.flashcardsDesc},
+        {id: 'resumes', desc: t.resumesDesc},
+        {id: 'statistiques', desc: t.statsDesc},
+        {id: 'parametres', desc: t.settingsDesc},
+        {id: 'profil', desc: t.profileDesc},
+    ];
+    descs.forEach(s => {
+        const el = document.querySelector(`#${s.id} .section-header p`);
+        if (el && s.desc) el.textContent = s.desc;
+    });
+    // Navigation
+    const navMap = {
+        dashboard: t.dashboard,
+        import: t.import,
+        qcm: t.qcm,
+        flashcards: t.flashcards,
+        resumes: t.resumes,
+        statistiques: t.stats
+    };
+    Object.keys(navMap).forEach(id => {
+        const nav = document.querySelector(`.nav-link[href="#${id}"]`);
+        if (nav) nav.childNodes[2].textContent = navMap[id];
+    });
+    // Menu utilisateur
+    const paramLink = document.querySelector('.dropdown-menu a[href="#parametres"]');
+    if (paramLink) paramLink.childNodes[2].textContent = t.settings;
+    const profilLink = document.querySelector('.dropdown-menu a[href="#profil"]');
+    if (profilLink) profilLink.childNodes[2].textContent = t.profile;
+    // Message
     showMessage(`Langue changée vers ${language === 'fr' ? 'Français' : language === 'en' ? 'English' : language === 'es' ? 'Español' : 'Deutsch'}`, true);
-    
-    // Ici vous pourriez implémenter un vrai système de traduction
-    // Pour l'instant, on simule juste le changement
 }
 
 function changeTheme(theme) {
