@@ -209,12 +209,7 @@ resetForm.addEventListener('submit', async (e) => {
 });
 
 // Vérifier l'état d'authentification au chargement
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // L'utilisateur est déjà connecté, rediriger vers le dashboard
-        window.location.href = 'dashboard.html';
-    }
-});
+// On ne fait rien ici, la redirection se fait uniquement après soumission réussie du formulaire.
 
 // Gestion des erreurs de validation en temps réel
 emailInput.addEventListener('blur', () => {

@@ -194,12 +194,7 @@ googleRegisterBtn.addEventListener('click', async () => {
 });
 
 // Vérifier l'état d'authentification au chargement
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        // L'utilisateur est déjà connecté, rediriger vers le dashboard
-        window.location.href = 'dashboard.html';
-    }
-});
+// On ne fait rien ici, la redirection se fait uniquement après soumission réussie du formulaire.
 
 // Validation en temps réel
 emailInput.addEventListener('blur', () => {
