@@ -181,4 +181,35 @@ Pour toute question ou problème :
 
 ---
 
+## ⚠️ Configuration Google/Firebase pour la connexion Google
+
+Pour que la connexion Google fonctionne parfaitement, suivez ces étapes :
+
+1. **Vérifiez le champ `authDomain` dans `js/auth.js`**
+   - Il doit correspondre à l'URL de votre site (ex : `studyhub-proje.firebaseapp.com` ou `localhost:5500` si vous testez en local).
+
+2. **Dans la console Firebase**
+   - Allez dans **Authentification > Méthode de connexion > Google**.
+   - Ajoutez dans **URIs de redirection autorisées** :
+     - `http://localhost:5500/` (ou le port utilisé par votre serveur local)
+     - L'URL de production si vous déployez en ligne
+   - Dans **Domaines autorisés**, ajoutez aussi :
+     - `localhost`
+     - Votre domaine de production
+
+3. **Redémarrez votre serveur local** après modification si besoin.
+
+4. **Testez la connexion Google** :
+   - Cliquez sur "Connexion avec Google" sur la page de login.
+   - Si la fenêtre Google s'ouvre, choisissez un compte, vous devez être redirigé vers le dashboard.
+   - Si vous voyez une erreur de redirection Google, c'est que l'URL n'est pas bien autorisée dans la console Firebase.
+
+---
+
+**Astuce** :
+- Si vous changez de port local (ex: 5501, 8080, etc.), pensez à l’ajouter dans Firebase !
+- Si vous déployez sur un autre domaine, ajoutez-le aussi.
+
+---
+
 **StudyHub** - Transformez vos documents en outils d'apprentissage intelligents ! 🎓
