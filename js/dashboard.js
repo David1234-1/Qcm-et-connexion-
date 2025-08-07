@@ -13,6 +13,35 @@ let userData = {
     }
 };
 
+// --- SUPABASE SESSION CHECK ---
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+const supabase = createClient(
+  'https://xggnrnwyvqslxigblhih.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlwd21lemtsaXZmcWVnc2tjemx4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5NTczODksImV4cCI6MjA2OTUzMzM4OX0.ylmGI6yUfZtEtgIaS4FYQqAI6vJsIblAeYsob9ECXBY'
+)
+
+async function checkSupabaseSession() {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    window.location.href = 'login.html'
+    return
+  }
+  // Afficher les infos utilisateur dans la navbar
+  const { user } = session
+  if (user) {
+    const userName = user.user_metadata?.full_name || user.email
+    const userAvatar = user.user_metadata?.avatar_url
+    if (document.getElementById('userName')) document.getElementById('userName').textContent = userName
+    if (userAvatar && document.getElementById('userAvatar')) document.getElementById('userAvatar').innerHTML = `<img src='${userAvatar}' alt='Avatar' style='width:32px;height:32px;border-radius:50%;object-fit:cover;'>`
+  }
+}
+
+// Appeler la vérification au chargement
+if (window.location.pathname.endsWith('dashboard.html')) {
+  checkSupabaseSession()
+}
+// --- FIN SUPABASE SESSION CHECK ---
+
 // Initialisation
 document.addEventListener('DOMContentLoaded', function() {
     checkAuth();

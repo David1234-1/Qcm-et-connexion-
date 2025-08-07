@@ -55,6 +55,9 @@
               document.getElementById('google-login').addEventListener('click', async () => {
                 const { data, error } = await supabase.auth.signInWithOAuth({
                   provider: 'google',
+                  options: {
+                    redirectTo: window.location.origin + '/dashboard.html'
+                  }
                 })
                 if (error) {
                   alert('Erreur : ' + error.message)
