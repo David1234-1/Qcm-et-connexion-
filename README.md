@@ -1,87 +1,53 @@
-# StudyHub - Médecine
+# StudyHub - Plateforme de Révision Intelligente
 
-Une application web de révision médicale intelligente qui permet d'importer des cours en PDF, d'en générer automatiquement des QCM, flashcards et résumés grâce à l'IA, de s'entraîner, suivre ses progrès et collaborer avec d'autres étudiants.
+StudyHub est une application web moderne qui utilise l'intelligence artificielle pour transformer vos documents PDF en outils d'apprentissage interactifs. Importez vos cours, et l'IA génère automatiquement des QCM, des flashcards et des résumés pour optimiser votre révision.
 
-## 🚀 Fonctionnalités principales
+## 🚀 Fonctionnalités Principales
 
-### 🔐 Authentification sécurisée
-- Connexion par email + mot de passe
-- Connexion via Google
-- Réinitialisation du mot de passe
-- Vérification email
-- Sécurisation de l'accès à l'espace personnel
+### 📚 Import et Analyse de Documents
+- **Import PDF** : Glissez-déposez vos fichiers PDF ou sélectionnez-les depuis votre ordinateur
+- **Analyse IA** : Après l'import, cliquez sur "Analyser" pour que l'IA traite votre document
+- **Génération automatique** : Création de QCM, flashcards et résumés basés sur le contenu
+- **Options personnalisables** : Choisissez le nombre de questions, la difficulté et le nombre de flashcards
 
-### 📚 Import de cours
-- Interface pour importer un ou plusieurs PDF
-- Extraction automatique du texte
-- Aperçu et renommage du fichier
-- Support des fichiers jusqu'à 10MB
+### 🎯 QCM Interactifs
+- Questions à choix multiples générées par IA
+- Différents niveaux de difficulté (Facile, Moyen, Difficile)
+- Suivi des performances et statistiques
+- Explications détaillées pour chaque réponse
 
-### 🧠 Génération IA
-- Génération automatique de QCM (choix multiples, niveau ajustable)
-- Flashcards (question/réponse)
-- Résumés clairs et structurés
-- Options de personnalisation :
-  - Nombre de questions
-  - Type (rapide, approfondi)
-  - Niveau de difficulté
+### 🗂️ Flashcards Intelligentes
+- Cartes de révision générées automatiquement
+- Système de révision espacée
+- Suivi de l'apprentissage
+- Interface intuitive pour la révision
 
-### 🧪 Mode entraînement
-- Affichage des QCM un par un
-- Feedback immédiat
-- Score final avec feedback
-- Relecture des erreurs
-- Option "Examen" sans correction immédiate
+### 📊 Statistiques et Suivi
+- Tableau de bord avec métriques détaillées
+- Progression globale et par matière
+- Scores moyens et tendances
+- Historique des performances
 
-### 📊 Suivi des performances
-- Statistiques par matière/thème
-- Courbe de progression
-- Erreurs fréquentes à revoir
-- Résumés des résultats passés
+### ⚙️ Paramètres Personnalisables
+- **Changement de langue** : Français, Anglais, Espagnol, Allemand
+- **Thèmes** : Mode clair et sombre
+- **Notifications** : Email, push et rappels de révision
+- **Profil utilisateur** : Avatar personnalisable, bio, informations
 
-### 📇 Flashcards intelligentes
-- Navigation intuitive (swiper, clic)
-- Marquage "Appris" ou "À revoir"
-- Répétition espacée automatique
+### 👤 Gestion de Profil
+- **Avatars personnalisables** : Uploadez votre photo de profil
+- **Informations personnelles** : Nom, email, bio
+- **Préférences sauvegardées** : Toutes vos préférences sont conservées
 
-### 🧩 Organisation claire
-- Classement des documents et contenus par :
-  - Matière
-  - Chapitre
-  - Thème
-- Recherche intelligente (filtrage par mot-clé ou type)
-
-### 🎮 Gamification
-- Badges (Ex. : "100 QCM réussis", "3 jours de suite")
-- Tableau de bord des succès
-- Objectifs journaliers/mensuels
-
-### 📤 Partage et collaboration
-- Partage de QCM/flashcards avec d'autres étudiants
-- Mode "révision à deux"
-- Groupes privés de travail
-
-### 💻 Interface professionnelle et responsive
-- Adaptée mobile/tablette/ordinateur
-- Design motivant, fluide, clair
-- Thèmes clairs et sombres
-
-### ☁️ Synchronisation cloud
-- Stockage dans Firebase Firestore
-- Accessible depuis n'importe quel appareil
-- Résilience (si tu te déconnectes, rien n'est perdu)
-
-## 🛠️ Technologies utilisées
+## 🛠️ Technologies Utilisées
 
 - **Frontend** : HTML5, CSS3, JavaScript (ES6+)
-- **Authentification** : Firebase Auth
-- **Base de données** : Firebase Firestore
-- **Stockage** : Firebase Storage
-- **IA** : Intégration OpenAI (simulation)
-- **Design** : CSS Grid, Flexbox, Animations CSS
-- **Responsive** : Mobile-first design
+- **Authentification** : Firebase Authentication
+- **Stockage** : LocalStorage pour les données utilisateur
+- **UI/UX** : Design moderne avec animations fluides
+- **Responsive** : Compatible mobile et desktop
 
-## 📁 Structure du projet
+## 📁 Structure du Projet
 
 ```
 studyhub/
@@ -89,191 +55,115 @@ studyhub/
 ├── login.html              # Page de connexion
 ├── register.html           # Page d'inscription
 ├── dashboard.html          # Dashboard principal
-├── faq.html               # Page FAQ
+├── faq.html               # FAQ
 ├── css/
-│   ├── style.css          # Styles principaux
-│   ├── auth.css           # Styles authentification
-│   └── dashboard.css      # Styles dashboard
+│   ├── style.css          # Styles généraux
+│   ├── auth.css           # Styles d'authentification
+│   └── dashboard.css      # Styles du dashboard
 ├── js/
-│   ├── main.js            # JavaScript principal
-│   ├── auth.js            # Authentification
+│   ├── main.js            # Fonctions principales
+│   ├── auth.js            # Authentification Firebase
 │   ├── register.js        # Inscription
-│   └── dashboard.js       # Dashboard
+│   └── dashboard.js       # Logique du dashboard
 └── README.md              # Documentation
 ```
 
-## 🚀 Installation et déploiement
+## 🚀 Installation et Utilisation
 
 ### Prérequis
-- Un navigateur web moderne
-- Connexion internet pour Firebase
+- Navigateur web moderne (Chrome, Firefox, Safari, Edge)
+- Connexion Internet pour Firebase
 
-### Déploiement sur Netlify
+### Installation
+1. Clonez ou téléchargez le projet
+2. Ouvrez `index.html` dans votre navigateur
+3. Créez un compte ou connectez-vous
+4. Commencez à importer vos documents PDF !
 
-1. **Préparer les fichiers**
-   ```bash
-   # Tous les fichiers sont déjà prêts pour le déploiement
-   ```
+### Utilisation
+1. **Import** : Glissez-déposez un PDF dans la zone d'import
+2. **Configuration** : Choisissez vos options de génération
+3. **Analyse** : Cliquez sur "Analyser" pour traiter le document
+4. **Révision** : Utilisez les QCM et flashcards générés
+5. **Suivi** : Consultez vos statistiques et progrès
 
-2. **Déployer sur Netlify**
-   - Connectez-vous à [Netlify](https://netlify.com)
-   - Glissez-déposez le dossier du projet
-   - Ou connectez votre repository GitHub
-   - Le site sera automatiquement déployé
+## 🔧 Fonctionnalités Techniques
 
-3. **Configuration Firebase**
-   - Les clés Firebase sont déjà configurées
-   - L'authentification est prête à l'emploi
+### Import PDF
+- Validation des fichiers (PDF uniquement, max 10MB)
+- Lecture et traitement du contenu
+- Barre de progression en temps réel
+- Gestion des erreurs
 
-## 🎯 Utilisation
+### Analyse IA
+- Traitement du contenu textuel
+- Identification des concepts clés
+- Génération de questions pertinentes
+- Création de flashcards structurées
 
-### 1. Créer un compte
-- Allez sur la page d'accueil
-- Cliquez sur "Commencer gratuitement"
-- Créez votre compte avec email ou Google
+### Système de Paramètres
+- Sauvegarde automatique des préférences
+- Changement de langue en temps réel
+- Basculement thème clair/sombre
+- Gestion des notifications
 
-### 2. Importer un cours
-- Connectez-vous au dashboard
-- Allez dans la section "Importer"
-- Glissez-déposez votre PDF ou cliquez pour sélectionner
-- Configurez les options de génération
-- Attendez que l'IA traite votre document
+### Gestion des Avatars
+- Upload d'images personnalisées
+- Redimensionnement automatique
+- Sauvegarde en base64
+- Affichage dans l'interface
 
-### 3. Réviser avec les QCM
-- Allez dans la section "QCM"
-- Choisissez un cours
-- Répondez aux questions
-- Consultez vos résultats
+## 🎨 Interface Utilisateur
 
-### 4. Utiliser les flashcards
-- Allez dans la section "Flashcards"
-- Choisissez un cours
-- Naviguez entre les cartes
-- Marquez les cartes comme apprises
+### Design Moderne
+- Interface épurée et intuitive
+- Animations fluides et transitions
+- Design responsive pour tous les écrans
+- Thèmes clair et sombre
 
-### 5. Consulter les résumés
-- Allez dans la section "Résumés"
-- Consultez les résumés générés par l'IA
-- Notez les points clés
+### Navigation
+- Menu de navigation fixe
+- Sections organisées logiquement
+- Accès rapide aux fonctionnalités
+- Indicateurs visuels de progression
 
-### 6. Suivre vos progrès
-- Allez dans la section "Statistiques"
-- Consultez vos performances
-- Suivez votre progression
-
-## 🔧 Configuration Firebase
-
-L'application utilise Firebase pour l'authentification et le stockage. La configuration est déjà incluse :
-
-```javascript
-const firebaseConfig = {
-  apiKey: "AIzaSyCqGSBrsJ-7PIpfjAM58gD8h4VcY793rWQ",
-  authDomain: "studyhub-proje.firebaseapp.com",
-  projectId: "studyhub-proje",
-  storageBucket: "studyhub-proje.appspot.com",
-  messagingSenderId: "359347355393",
-  appId: "1:359347355393:web:8c05ede417c10c272d6500",
-  measurementId: "G-DMQJNJW9S0"
-};
-```
-
-## 🎨 Design et UX
-
-### Couleurs principales
-- **Bleu principal** : #2563eb
-- **Vert succès** : #10b981
-- **Rouge erreur** : #ef4444
-- **Gris neutre** : #64748b
-
-### Typographie
-- **Police** : Inter (Google Fonts)
-- **Poids** : 300, 400, 500, 600, 700
-
-### Responsive Design
-- **Mobile** : < 768px
-- **Tablet** : 768px - 1024px
-- **Desktop** : > 1024px
+### Feedback Utilisateur
+- Messages de confirmation/erreur
+- Barres de progression
+- États de chargement
+- Notifications contextuelles
 
 ## 🔒 Sécurité
 
 - Authentification Firebase sécurisée
-- Validation côté client et serveur
+- Validation des données côté client
 - Protection contre les injections
-- Chiffrement des données sensibles
-- HTTPS obligatoire en production
+- Gestion sécurisée des tokens
 
 ## 📱 Compatibilité
 
-- ✅ Chrome (dernière version)
-- ✅ Firefox (dernière version)
-- ✅ Safari (dernière version)
-- ✅ Edge (dernière version)
-- ✅ Mobile (iOS/Android)
+- **Desktop** : Chrome, Firefox, Safari, Edge
+- **Mobile** : iOS Safari, Chrome Mobile
+- **Tablette** : iPad, Android Tablets
+- **Résolutions** : 320px à 4K
 
-## 🚀 Fonctionnalités avancées
+## 🚧 Améliorations Récentes
 
-### Génération IA simulée
-L'application simule la génération IA avec des données d'exemple. Pour une vraie intégration :
-
-1. **OpenAI API**
-   ```javascript
-   // Exemple d'intégration OpenAI
-   const response = await fetch('https://api.openai.com/v1/chat/completions', {
-     method: 'POST',
-     headers: {
-       'Authorization': `Bearer ${OPENAI_API_KEY}`,
-       'Content-Type': 'application/json'
-     },
-     body: JSON.stringify({
-       model: "gpt-4",
-       messages: [
-         {
-           role: "system",
-           content: "Génère des QCM médicaux basés sur ce contenu..."
-         },
-         {
-           role: "user",
-           content: extractedText
-         }
-       ]
-     })
-   });
-   ```
-
-2. **PDF Processing**
-   ```javascript
-   // Exemple avec pdf.js
-   import * as pdfjsLib from 'pdfjs-dist';
-   const pdf = await pdfjsLib.getDocument(file).promise;
-   ```
-
-## 🎯 Roadmap
-
-### Phase 1 (Actuelle)
-- ✅ Authentification Firebase
-- ✅ Import PDF basique
-- ✅ Génération QCM simulée
-- ✅ Interface dashboard
-- ✅ Statistiques de base
-
-### Phase 2 (Prochaine)
-- 🔄 Intégration OpenAI réelle
-- 🔄 Traitement PDF avancé
-- 🔄 Mode examen
-- 🔄 Partage entre utilisateurs
-
-### Phase 3 (Future)
-- 📋 IA conversationnelle
-- 📋 Reconnaissance vocale
-- 📋 Mode hors ligne
-- 📋 Applications mobiles
+### Version 2.0
+- ✅ **Import PDF amélioré** : Vraie lecture des fichiers PDF
+- ✅ **Fonction d'analyse** : Bouton "Analyser" après import
+- ✅ **Système de paramètres** : Langue, thème, notifications
+- ✅ **Gestion des avatars** : Upload et personnalisation
+- ✅ **Thème sombre** : Mode sombre complet
+- ✅ **Interface utilisateur** : Menu dropdown, navigation améliorée
+- ✅ **Sauvegarde des préférences** : Persistance des paramètres
 
 ## 🤝 Contribution
 
-Pour contribuer au projet :
+Les contributions sont les bienvenues ! Pour contribuer :
 
-1. Fork le repository
-2. Créez une branche feature
+1. Forkez le projet
+2. Créez une branche pour votre fonctionnalité
 3. Committez vos changements
 4. Poussez vers la branche
 5. Ouvrez une Pull Request
@@ -285,10 +175,10 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 ## 📞 Support
 
 Pour toute question ou problème :
-- Email : contact@studyhub-med.com
-- FAQ : [Page FAQ](faq.html)
-- Documentation : Ce README
+- Consultez la FAQ intégrée
+- Vérifiez la documentation
+- Contactez l'équipe de support
 
 ---
 
-**StudyHub** - Révolutionnez votre révision médicale avec l'IA ! 🧠📚
+**StudyHub** - Transformez vos documents en outils d'apprentissage intelligents ! 🎓
