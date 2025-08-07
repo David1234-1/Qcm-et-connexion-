@@ -110,7 +110,7 @@ function showSection(sectionId) {
 
 // Gestion de l'upload de fichiers
 function handleFileUpload(file) {
-    const isPDF = file.type === 'application/pdf';
+    const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
     const isImage = file.type.startsWith('image/');
     if (!isPDF && !isImage) {
         showMessage('Veuillez sélectionner un fichier PDF ou une image', false);
@@ -135,7 +135,12 @@ function handleFileUpload(file) {
                 const typedarray = new Uint8Array(e.target.result);
                 progressFill.style.width = '20%';
                 progressText.textContent = 'Chargement du document...';
-                const pdf = await window['pdfjsLib'].getDocument({data: typedarray}).promise;
+                let pdf;
+                try {
+                    pdf = await window['pdfjsLib'].getDocument({data: typedarray}).promise;
+                } catch (err) {
+                    throw new Error('Impossible de lire le PDF. Vérifiez que le fichier n\'est pas corrompu ou que le serveur autorise le chargement (CORS).');
+                }
                 let textContent = '';
                 for (let i = 1; i <= pdf.numPages; i++) {
                     progressFill.style.width = (20 + (i/pdf.numPages)*60) + '%';
