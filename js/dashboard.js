@@ -113,47 +113,46 @@ function handleFileUpload(file) {
     if (!validatePDF(file)) {
         return;
     }
-    
+
     const fileName = file.name;
     const fileSize = (file.size / 1024 / 1024).toFixed(2);
-    
+
     // Afficher la progression
     const progressContainer = document.getElementById('importProgress');
     const progressFill = document.getElementById('progressFill');
     const progressText = document.getElementById('progressText');
-    
+
     progressContainer.style.display = 'block';
-    
-    // Lire le contenu du PDF
+    progressFill.style.width = '0%';
+    progressText.textContent = 'Lecture du fichier PDF...';
+
+    // Lire le PDF avec PDF.js
     const reader = new FileReader();
-    reader.onload = function(e) {
-        // Simuler la progression avec une vraie analyse
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress > 100) progress = 100;
-            
-            progressFill.style.width = progress + '%';
-            
-            if (progress < 30) {
-                progressText.textContent = 'Analyse du document PDF...';
-            } else if (progress < 60) {
-                progressText.textContent = 'Extraction du contenu textuel...';
-            } else if (progress < 90) {
-                progressText.textContent = 'Génération des QCM et flashcards...';
-            } else {
-                progressText.textContent = 'Finalisation...';
+    reader.onload = async function(e) {
+        try {
+            const typedarray = new Uint8Array(e.target.result);
+            progressFill.style.width = '20%';
+            progressText.textContent = 'Chargement du document...';
+
+            const pdf = await window['pdfjsLib'].getDocument({data: typedarray}).promise;
+            let textContent = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                progressFill.style.width = (20 + (i/pdf.numPages)*60) + '%';
+                progressText.textContent = `Extraction du texte (page ${i}/${pdf.numPages})...`;
+                const page = await pdf.getPage(i);
+                const txt = await page.getTextContent();
+                textContent += txt.items.map(item => item.str).join(' ') + '\n';
             }
-            
-            if (progress >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    completeFileUpload(fileName, fileSize, e.target.result);
-                }, 500);
-            }
-        }, 200);
+            progressFill.style.width = '90%';
+            progressText.textContent = 'Finalisation de l\'import...';
+            setTimeout(() => {
+                completeFileUpload(fileName, fileSize, textContent);
+            }, 500);
+        } catch (err) {
+            progressContainer.style.display = 'none';
+            showMessage('Erreur lors de la lecture du PDF : ' + err.message, false);
+        }
     };
-    
     reader.readAsArrayBuffer(file);
 }
 
@@ -195,7 +194,8 @@ function completeFileUpload(fileName, fileSize, fileContent) {
         qcmCount: qcmCount,
         flashcardsCount: flashcardsCount,
         difficulty: difficulty,
-        analyzed: false // Nouveau champ pour indiquer si le cours a été analysé
+        analyzed: false, // Nouveau champ pour indiquer si le cours a été analysé
+        pdfText: fileContent // On stocke le texte extrait du PDF
     };
     
     // Ajouter aux données utilisateur
@@ -274,10 +274,10 @@ function completeAnalysis(courseId) {
     course.analyzed = true;
     course.analysisDate = new Date().toISOString();
     
-    // Générer les QCM et flashcards basés sur le contenu du cours
-    const qcm = generateSampleQCM(course.name, course.qcmCount, course.difficulty);
-    const flashcards = generateSampleFlashcards(course.name, course.flashcardsCount);
-    const resume = generateSampleResume(course.name);
+    // Générer les QCM et flashcards basés sur le contenu du cours (ici on simule, mais on pourrait utiliser course.pdfText)
+    const qcm = generateSampleQCM(course.pdfText || course.name, course.qcmCount, course.difficulty);
+    const flashcards = generateSampleFlashcards(course.pdfText || course.name, course.flashcardsCount);
+    const resume = generateSampleResume(course.pdfText || course.name);
     
     // Ajouter aux données utilisateur
     userData.qcm.push(...qcm);
