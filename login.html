@@ -41,10 +41,26 @@
                 <span>ou</span>
             </div>
 
-            <button id="googleLogin" class="btn-google">
+            <button id="google-login" class="btn-google">
                 <i class="fab fa-google"></i>
                 Connexion avec Google
             </button>
+
+            <script type="module">
+              import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+              const supabase = createClient(
+                'https://xggnrnwyvqslxigblhih.supabase.co',
+                'PASTE_YOUR_PUBLIC_ANON_KEY_HERE'
+              )
+              document.getElementById('google-login').addEventListener('click', async () => {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                  provider: 'google',
+                })
+                if (error) {
+                  alert('Erreur : ' + error.message)
+                }
+              })
+            </script>
 
             <div class="auth-links">
                 <a href="#" id="forgotPassword">Mot de passe oublié ?</a>

@@ -119,35 +119,11 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Connexion avec Google
-googleLoginBtn.addEventListener('click', async () => {
-    setLoading(googleLoginBtn, true);
-    
-    try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        
-        // Stocker les informations utilisateur
-        localStorage.setItem('currentUser', JSON.stringify({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName || user.email
-        }));
-        localStorage.setItem('userToken', await user.getIdToken());
-        
-        showMessage('Connexion Google réussie ! Redirection...', true);
-        
-        setTimeout(() => {
-            window.location.href = 'dashboard.html';
-        }, 1500);
-        
-    } catch (error) {
-        console.error('Erreur Google:', error);
-        showMessage('Erreur lors de la connexion Google', false);
-    } finally {
-        setLoading(googleLoginBtn, false);
-    }
-});
+// Supprimer la logique Google/Firebase (connexion)
+// Ancien code :
+// googleLoginBtn.addEventListener('click', ...)
+// ...
+// Fin suppression
 
 // Gestion du modal de réinitialisation
 forgotPasswordBtn.addEventListener('click', (e) => {
